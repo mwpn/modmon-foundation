@@ -245,12 +245,30 @@ class ModuleManager
         }
 
         // Run migrations
-        $migrationsPath = $manifest->path . '/Database/Migrations';
-        if (is_dir($migrationsPath) && count(glob($migrationsPath . '/*.php') ?: []) > 0) {
-            $exitCode = Artisan::call('migrate', [
-                '--path' => str_replace(base_path() . '/', '', $migrationsPath),
-                '--force' => true,
-            ]);
+        // Use a canonical (realpath) migration path and --realpath so the
+        // command works on Windows, where path separators are backslashes:
+        // passing an absolute path without --realpath makes Laravel prepend
+        // basePath() again, producing a doubled path and "Nothing to migrate".
+        $migrationsPath = realpath($manifest->path . '/Database/Migrations');
+        if ($migrationsPath === false && is_dir($manifest->path . '/Database/Migrations')) {
+            return ['success' => false, 'messages' => [
+                "Migration path could not be resolved for module '{$code}'. Module was NOT installed.",
+            ]];
+        }
+
+        if (is_string($migrationsPath) && count(glob($migrationsPath . '/*.php') ?: []) > 0) {
+            try {
+                $exitCode = Artisan::call('migrate', [
+                    '--path' => $migrationsPath,
+                    '--realpath' => true,
+                    '--force' => true,
+                ]);
+            } catch (\Throwable $e) {
+                return ['success' => false, 'messages' => [
+                    "Migration failed for module '{$code}': {$e->getMessage()}",
+                    "Module was NOT installed.",
+                ]];
+            }
 
             if ($exitCode !== 0) {
                 return ['success' => false, 'messages' => [

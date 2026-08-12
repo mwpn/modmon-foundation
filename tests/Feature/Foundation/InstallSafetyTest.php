@@ -10,7 +10,7 @@ use App\Foundation\SDK\Contracts\ModuleRegistrarContract;
 use App\Foundation\SDK\Contracts\NavigationRegistryContract;
 use App\Foundation\SDK\Contracts\PermissionRegistryContract;
 use App\Foundation\SDK\Contracts\WorkspaceRegistryContract;
-use App\Foundation\SDK\ModuleState;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -167,5 +167,52 @@ class InstallSafetyTest extends TestCase
             collect($result['messages'])->contains(fn ($m) => str_contains($m, 'Migrations applied')),
             'Should confirm migrations were applied',
         );
+    }
+
+    /**
+     * Regression: module migrations must actually run, not silently no-op.
+     *
+     * On Windows, an absolute module migration path passed without
+     * --realpath makes Laravel prepend basePath() again, producing a
+     * doubled path and "Nothing to migrate" (exit 0, no tables created).
+     * The install reports success while the migration never ran.
+     */
+    public function test_install_actually_runs_module_migrations(): void
+    {
+        Schema::dropIfExists('example_entries');
+
+        $manager = app(ModuleManager::class);
+        $result = $manager->install('example');
+
+        $this->assertTrue($result['success']);
+        $this->assertTrue(
+            Schema::hasTable('example_entries'),
+            'example_entries must exist after install: the module migration must have run',
+        );
+    }
+
+    /**
+     * A failed migration must never leave the module Enabled or its
+     * capabilities registered.
+     */
+    public function test_failed_migration_never_leaves_module_enabled(): void
+    {
+        // Pre-creating example_entries makes the module migration's
+        // Schema::create throw "table already exists".
+        Schema::create('example_entries', function ($table) {
+            $table->id();
+            $table->string('title');
+        });
+
+        $manager = app(ModuleManager::class);
+        $result = $manager->install('example');
+
+        $this->assertFalse($result['success']);
+
+        $registrar = app(ModuleRegistrarContract::class);
+        $this->assertNull($registrar->getState('example'));
+
+        $capabilities = app(CapabilityRegistryContract::class);
+        $this->assertFalse($capabilities->has('example.demo'));
     }
 }
