@@ -41,6 +41,23 @@ Verify:
 Update docs/current-state.md if repository reality changes.
 ```
 
+## Module Authoring Task
+
+For creating or modifying a portable module:
+
+1.  `AGENTS.md`
+2.  `docs/module-authoring-standard-v1.md`
+3.  `docs/templates/module-readme-template.md` and
+    `docs/templates/module-json-template.json`
+4.  target module `README.md` + `module.json`
+5.  `module.json` + `README.md` of modules this module depends on
+
+Do not read Foundation source unless the authoring standard is ambiguous
+on a specific API.
+
+After implementation, run the certification checklist (section 18 of
+the authoring standard).
+
 ## Architecture Task
 
 For an architecture change, additionally read: -

@@ -21,10 +21,12 @@ For every task, read only what is necessary:
 3.  `docs/requirements-locked.md`;
 4.  the target module's `README.md` and `module.json`, if working on a
     module;
-5.  relevant sections of `docs/architecture.md`,
+5.  `docs/module-authoring-standard-v1.md`, if creating or modifying a
+    module;
+6.  relevant sections of `docs/architecture.md`,
     `docs/portable-module-contract.md`, `docs/dependency-rules.md`, or
     `docs/ui-composition.md`;
-6.  relevant accepted ADRs.
+7.  relevant accepted ADRs.
 
 Do not perform broad repository rediscovery when these sources already
 answer the question.
@@ -97,6 +99,36 @@ host application source.
 
 Compatibility is determined by PHP + Laravel + Foundation Contract +
 required capabilities, not Laravel alone.
+
+## Module Authoring Workflow
+
+When creating a new portable module, follow this workflow:
+
+```
+read AGENTS.md
+    ↓
+read docs/module-authoring-standard-v1.md
+    ↓
+inspect module.json + README of related/required modules
+    ↓
+inspect only relevant Foundation SDK contracts
+    ↓
+implement (module.json, provider, contributions, routes, migrations, views)
+    ↓
+verify (module:doctor, module:install, tests, disable/enable cycle)
+    ↓
+update module README following docs/templates/module-readme-template.md
+    ↓
+run certification checklist (section 18 of authoring standard)
+    ↓
+report
+```
+
+Templates for `module.json` and `README.md` are in `docs/templates/`.
+
+The goal is to minimize expensive broad repository rediscovery. The
+module authoring standard documents all Foundation v1 APIs available to
+module authors.
 
 ## Task Discipline
 

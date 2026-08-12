@@ -1,0 +1,17 @@
+{
+    "schema": 1,
+    "name": "{Module Name}",
+    "code": "{module-code}",
+    "version": "1.0.0",
+    "type": "{platform|business|integration}",
+    "provider": "Modules\\{ModuleName}\\{ModuleName}ServiceProvider",
+    "compatibility": {
+        "php": "^8.3",
+        "laravel": "^13.0",
+        "foundation": "^1.0"
+    },
+    "requires": {
+        "capabilities": []
+    },
+    "provides": []
+}

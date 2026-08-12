@@ -143,11 +143,60 @@ Routes registered by a module during the same HTTP request that calls
 will not load a disabled module's routes. This is a Laravel framework
 limitation (route collection is immutable once built).
 
+## Module Authoring Standard v1
+
+Completed 2026-08-12. Defines the canonical contract and workflow for
+building portable ModMon modules.
+
+### Deliverables
+
+-   `docs/module-authoring-standard-v1.md` — 18-section canonical
+    standard covering identity, manifest, structure, provider,
+    capabilities, cross-module communication, database, routes,
+    permissions, navigation, dashboards, settings, events, lifecycle,
+    versioning, README contract, testing, and Definition of Done.
+-   `docs/templates/module-readme-template.md` — standard README template.
+-   `docs/templates/module-json-template.json` — canonical manifest
+    template.
+-   `docs/templates/module-json-examples.md` — annotated examples for
+    platform, business, and integration modules.
+-   `docs/proposals/authoring-tooling-v1.md` — evaluation of `module:make`
+    (recommended) and `module:verify` (deferred).
+-   `docs/reports/example-module-compliance-v1.md` — Example module
+    compliance report.
+-   `AGENTS.md` updated with Module Authoring Workflow section and read
+    order.
+-   `docs/agent-workflow.md` updated with Module Authoring Task section.
+-   `Modules/Example/README.md` expanded to follow README contract.
+
+### Known Foundation v1 Limitations (from authoring standard appendix B)
+
+1.  Route deactivation timing (Laravel limitation).
+2.  No `module:uninstall` command.
+3.  No `module:update` command.
+4.  No `requires.modules` (capability-only dependencies).
+5.  Single-provider capabilities only.
+6.  No API route middleware group (all routes use `web`).
+7.  Host `users` table ownership unresolved for future Identity module.
+8.  No runtime settings framework.
+9.  No `ContributesEvents` interface.
+10. State file concurrency edge cases.
+
+### Identity Module Ownership Issue
+
+The host application owns the `users` table/migration. A future
+`modmon-identity` module must resolve this ownership via an ADR before
+implementation. Three strategies are documented in section 7 of the
+authoring standard.
+
 ## Next Recommended Work
 
-1.  Run the full test suite on Laragon to verify (`php artisan test`).
-2.  Initialize Git repository and push to remote.
-3.  Implement platform modules: Identity/Auth, RBAC, Settings.
+1.  Review and accept Module Authoring Standard v1.
+2.  Implement `module:make` scaffolding command (see
+    `docs/proposals/authoring-tooling-v1.md`).
+3.  Implement platform modules: Identity/Auth (resolve users table
+    ownership first), RBAC, Settings.
 4.  Implement SaaS/Tenancy, Subscription modules.
 5.  Implement Owner/Tenant workspace modules.
-6.  Build first business module against the proven contract.
+6.  Build first business module against the proven contract and authoring
+    standard.
