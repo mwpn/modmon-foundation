@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Foundation;
 
+use App\Foundation\Runtime\ModuleManager;
 use App\Foundation\SDK\Contracts\CapabilityRegistryContract;
 use App\Foundation\SDK\Contracts\ModuleRegistrarContract;
 use App\Foundation\SDK\Contracts\NavigationRegistryContract;
 use App\Foundation\SDK\Contracts\PermissionRegistryContract;
 use App\Foundation\SDK\Contracts\WorkspaceRegistryContract;
-use App\Foundation\Runtime\ModuleManager;
 use Tests\TestCase;
 
 class ArtisanCommandsTest extends TestCase
@@ -47,7 +47,10 @@ class ArtisanCommandsTest extends TestCase
             ->assertSuccessful()
             ->expectsTable(
                 ['Name', 'Code', 'Version', 'Type', 'State', 'Provides', 'Requires'],
-                [['Example', 'example', '1.0.0', 'business', 'discovered', 'example.demo', '-']],
+                [
+                    ['Example', 'example', '1.0.0', 'business', 'discovered', 'example.demo', '-'],
+                    ['Identity', 'identity', '1.0.0', 'platform', 'discovered', 'identity.user, identity.authentication', '-'],
+                ],
             );
     }
 

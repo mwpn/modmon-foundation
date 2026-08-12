@@ -23,6 +23,19 @@ and `npm install` on target Laragon environment before first run.
     under the Modules root.
 7.  **Docs accuracy** — FoundationBoundaryTest correctly listed as
     requiring Laravel boot (uses `base_path()`).
+8.  **Windows migration path bugfix** — `ModuleManager::install()` now
+    resolves the module migrations path with `realpath()` and passes
+    `--realpath` to `migrate`. Previously the Windows backslash path
+    survived `str_replace(base_path().'/', ...)`, Laravel prepended
+    `basePath()` again, and migration silently no-opped ("Nothing to
+    migrate") while install reported success. Regression covered by
+    `InstallSafetyTest::test_install_actually_runs_module_migrations`.
+9.  **Migration exception handling** — `ModuleManager::install()`
+    catches `\Throwable` from `migrate` and aborts with a diagnostic
+    ("Migration failed for module '...'") instead of letting the
+    exception propagate past the install flow. Required so adoption
+    failures (incompatible schema / partial table state) abort cleanly
+    with a clear message.
 
 ## Locked Direction
 
@@ -95,6 +108,31 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
+### Identity Module (Modules/Identity/) — v1 Phases 1–3
+
+Implemented per `docs/proposals/identity-v1.md` (approved 2026-08-12)
+and ADR-0006 (Strategy D, amended runtime auth wiring):
+
+-   `module.json` — platform type, provides `identity.user` +
+    `identity.authentication`, no required capabilities
+-   `IdentityServiceProvider` — runtime auth-provider wiring
+    (`config('auth.providers.users.model')`) while enabled; respects
+    explicit host `AUTH_MODEL` override; never mutates `.env`;
+    implements `ContributesRoutes` (no routes in v1)
+-   `Models/User` — canonical user model extending Authenticatable
+    independently (never `App\Models\User`)
+-   `Domain/Contracts/UserQueryContract` + `Domain/ReadModels/UserReadModel`
+    — read-only boundary; bound to `EloquentUserQuery` in `register()`
+-   `Infrastructure/Adoption/UsersTableSchemaValidator` — strict
+    detect-and-validate schema checks before adoption
+-   `Database/Migrations/2026_08_12_000001_create_identity_users_tables.php`
+    — conditional migration: create both tables (fresh host), adopt
+    compatible legacy tables unchanged, abort on incompatible schema or
+    partial table state; `sessions` is never touched; no `identity_meta`
+-   Tests: 42 methods under `Modules/Identity/Tests/` (Unit, Feature,
+    Architecture); `Modules` testsuite added to `phpunit.xml`
+-   `docs/current-state.md` test summary updated accordingly
+
 ### Tests
 
 -   Architecture tests (pure PHPUnit, no Laravel boot):
@@ -112,8 +150,15 @@ and `npm install` on target Laragon environment before first run.
     valid manifest, provider, README, deterministic output, identity
     rejection, duplicate code/directory/provider rejection, no runtime
     state mutation), InstallSafety (capability collision,
-    state ordering, doctor wording), ModuleDiscoverySafety
-    (symlink rejection, real-directory acceptance)
+    state ordering, doctor wording, migration actually runs),
+    ModuleDiscoverySafety (symlink rejection, real-directory acceptance)
+-   Module tests (Laravel boot / pure PHPUnit): Modules/Identity/Tests —
+    manifest validity, model behavior, UserReadModel, UserQueryContract
+    binding, fresh-table creation, compatible legacy adoption, data
+    preservation, incompatible-schema rejection, partial-table-state
+    rejection, runtime auth provider resolution, AUTH_MODEL override,
+    `.env` byte-identical, Identity boundary (no host-user model, no
+    cross-module imports)
 
 ## Environment Requirements
 
@@ -141,7 +186,8 @@ npm run build
 Foundation v1. `module:make` adds 12 focused feature tests
 (tests/Feature/Foundation/ModuleMakeCommandTest.php) for the scaffolding
 command. Pre-audit: 80 tests / 146 assertions. Post-audit: 94 tests.
-With module:make: 106 tests.
+With module:make: 106 tests. With modmon-identity v1 Phases 1–3 (42
+module tests): 149 tests total (148 passed, 1 skipped, 363 assertions).
 
 ### Known Limitation
 
@@ -184,23 +230,29 @@ building portable ModMon modules.
 4.  No `requires.modules` (capability-only dependencies).
 5.  Single-provider capabilities only.
 6.  No API route middleware group (all routes use `web`).
-7.  Host `users` table ownership unresolved for future Identity module.
+7.  Host `users` table ownership — resolved by ADR-0006: `modmon-identity`
+    owns `users` and `password_reset_tokens` (Strategy D); `sessions`
+    remains Foundation-owned.
 8.  No runtime settings framework.
 9.  No `ContributesEvents` interface.
 10. State file concurrency edge cases.
 
 ### Identity Module Ownership Issue
 
-The host application owns the `users` table/migration. A future
-`modmon-identity` module must resolve this ownership via an ADR before
-implementation. Three strategies are documented in section 7 of the
-authoring standard.
+Resolved by ADR-0006 (Strategy D): `modmon-identity` owns `users` and
+`password_reset_tokens`; `sessions` remains Foundation-owned. Foundation
+1.x hosts: existing tables are adopted after strict schema validation.
+Foundation 2.x hosts: Identity creates the tables. Auth wiring is a
+runtime configuration applied by `IdentityServiceProvider` while the
+module is enabled; `AUTH_MODEL` is an optional host override and is
+never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
 1.  Review and accept Module Authoring Standard v1.
-2.  Implement platform modules: Identity/Auth (resolve users table
-    ownership first), RBAC, Settings.
+2.  Implement platform modules: Identity/Auth (Phases 4–6: auth flows,
+    `identity:user:create`, lifecycle polish, portability proof), RBAC,
+    Settings.
 3.  Implement SaaS/Tenancy, Subscription modules.
 4.  Implement Owner/Tenant workspace modules.
 5.  Build first business module against the proven contract and authoring

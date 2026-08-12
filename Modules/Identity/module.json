@@ -1,0 +1,20 @@
+{
+    "schema": 1,
+    "name": "Identity",
+    "code": "identity",
+    "version": "1.0.0",
+    "type": "platform",
+    "provider": "Modules\\Identity\\IdentityServiceProvider",
+    "compatibility": {
+        "php": "^8.3",
+        "laravel": "^13.0",
+        "foundation": "^1.0"
+    },
+    "requires": {
+        "capabilities": []
+    },
+    "provides": [
+        "identity.user",
+        "identity.authentication"
+    ]
+}
