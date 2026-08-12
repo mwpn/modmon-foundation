@@ -14,6 +14,7 @@ use App\Foundation\Runtime\Commands\ModuleDoctorCommand;
 use App\Foundation\Runtime\Commands\ModuleEnableCommand;
 use App\Foundation\Runtime\Commands\ModuleInstallCommand;
 use App\Foundation\Runtime\Commands\ModuleListCommand;
+use App\Foundation\Runtime\Commands\ModuleMakeCommand;
 use App\Foundation\Runtime\CompatibilityChecker;
 use App\Foundation\Runtime\DependencyResolver;
 use App\Foundation\Runtime\ManifestValidator;
@@ -82,6 +83,7 @@ class FoundationServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ModuleListCommand::class,
+                ModuleMakeCommand::class,
                 ModuleDoctorCommand::class,
                 ModuleInstallCommand::class,
                 ModuleEnableCommand::class,

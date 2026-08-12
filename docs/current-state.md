@@ -51,8 +51,9 @@ and `npm install` on target Laragon environment before first run.
 -   `ModuleRegistrar` — JSON-file-backed lifecycle state
     (storage/app/modules.json)
 -   `ModuleManager` — central lifecycle orchestrator
--   Artisan commands: `module:list`, `module:doctor`, `module:install`,
-    `module:enable`, `module:disable`, `foundation:doctor`
+-   Artisan commands: `module:list`, `module:make`, `module:doctor`,
+    `module:install`, `module:enable`, `module:disable`,
+    `foundation:doctor`
 
 **SDK** (app/Foundation/SDK/)
 -   `ModuleManifest` — immutable value object
@@ -107,7 +108,10 @@ and `npm install` on target Laragon environment before first run.
     defaults, missing-array reindexing)
 -   Feature tests (Laravel boot): ModuleDiscovery,
     ModuleLifecycle (full install→disable→re-enable cycle),
-    ArtisanCommands, InstallSafety (capability collision,
+    ArtisanCommands, ModuleMakeCommand (module:make scaffolding:
+    valid manifest, provider, README, deterministic output, identity
+    rejection, duplicate code/directory/provider rejection, no runtime
+    state mutation), InstallSafety (capability collision,
     state ordering, doctor wording), ModuleDiscoverySafety
     (symlink rejection, real-directory acceptance)
 
@@ -133,8 +137,11 @@ npm run build
 
 ## Test Summary
 
-94 test methods across 3 suites (Architecture, Feature, Unit).
-Pre-audit: 80 tests / 146 assertions. Post-audit: 94 tests.
+94 test methods across 3 suites (Architecture, Feature, Unit) at
+Foundation v1. `module:make` adds 12 focused feature tests
+(tests/Feature/Foundation/ModuleMakeCommandTest.php) for the scaffolding
+command. Pre-audit: 80 tests / 146 assertions. Post-audit: 94 tests.
+With module:make: 106 tests.
 
 ### Known Limitation
 
@@ -192,11 +199,11 @@ authoring standard.
 ## Next Recommended Work
 
 1.  Review and accept Module Authoring Standard v1.
-2.  Implement `module:make` scaffolding command (see
-    `docs/proposals/authoring-tooling-v1.md`).
-3.  Implement platform modules: Identity/Auth (resolve users table
+2.  Implement platform modules: Identity/Auth (resolve users table
     ownership first), RBAC, Settings.
-4.  Implement SaaS/Tenancy, Subscription modules.
-5.  Implement Owner/Tenant workspace modules.
-6.  Build first business module against the proven contract and authoring
+3.  Implement SaaS/Tenancy, Subscription modules.
+4.  Implement Owner/Tenant workspace modules.
+5.  Build first business module against the proven contract and authoring
     standard.
+6.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+    at least two real modules have been authored.
