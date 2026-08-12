@@ -179,9 +179,10 @@ because the host model and config remain authoritative.
 `password_reset_tokens` still reference the old table.
 
 **D (Residue):** In Foundation 1.1, Identity provides its own User
-model that extends `Authenticatable`. The host `config/auth.php`
-already supports `env('AUTH_MODEL')` — Identity's install sets this
-environment variable (a configuration change, not a source edit).
+model that extends `Authenticatable`. Identity wires the auth provider
+to its model at runtime while the module is enabled (amended
+2026-08-12; see the Amendment below). `AUTH_MODEL` may remain an
+optional explicit host override but is never written by the module.
 Laravel's guards, password resets, and sessions work because Identity
 uses the same `users` table with the same schema. In Foundation 2.0,
 Identity owns the auth config directly.
@@ -320,7 +321,8 @@ baked into its host template.
 
 - Foundation 1.x: same coupling as Strategy B (host scaffolding
   exists), but documented as transitional. Identity installation
-  requires only `AUTH_MODEL` env var change.
+  requires only runtime auth-provider wiring (amended 2026-08-12);
+  no environment variable change.
 - Foundation 2.0: zero host coupling. The Foundation template has no
   opinion about users or authentication. Identity is a pure module.
 
@@ -552,6 +554,63 @@ strategy is applied. If Identity is uninstalled, the data question is
 handled by Identity's uninstall procedure (documented in its README),
 not by the Foundation reverting to host ownership.
 
+## Amendment (2026-08-12) — Runtime Auth-Provider Wiring Replaces the Mandatory AUTH_MODEL Environment Write
+
+### Context
+
+The original text above stated that Identity's install "sets `AUTH_MODEL`
+in `.env` (configuration change, not source edit)" and that disable
+"reverts `AUTH_MODEL` to the host default". The approved Identity v1
+proposal (`docs/proposals/identity-v1.md`) replaces this mechanism with
+runtime auth-provider configuration applied by
+`IdentityServiceProvider` while the module is enabled.
+
+This amendment replaces only that mechanism. **No other ADR-0006
+decision is changed or reopened.** Strategy D, table ownership
+(`users`, `password_reset_tokens` owned by Identity; `sessions` owned
+by Foundation), the Foundation 1.x adoption path, the Foundation 2.x
+fresh-create path, the capability declarations, and the one-way
+ownership transfer all remain exactly as decided.
+
+### New Mechanism
+
+1. **Runtime wiring.** While Identity is enabled,
+   `IdentityServiceProvider::register()` sets
+   `config(['auth.providers.users.model' =>
+   Modules\Identity\Models\User::class])` in-memory. Laravel's existing
+   `web` guard, `users` eloquent provider, and `users` password broker
+   are used unchanged.
+2. **`AUTH_MODEL` is an optional explicit host override only.** It is
+   never written, set, appended to, or otherwise mutated by Identity at
+   install, enable, or disable time. If a host explicitly sets
+   `AUTH_MODEL`, that value takes precedence over Identity's runtime
+   wiring.
+3. **Disable.** The runtime wiring is simply not applied on subsequent
+   requests because the module provider is no longer booted; auth falls
+   back to the host default model. There is no persistent value to
+   revert, because nothing was ever written.
+4. **Identity must never mutate `.env`.** This is a hard rule for the
+   module implementation. The only host-configuration touch points
+   Identity has are runtime config values, which are process-lifetime
+   only.
+
+### Updated Expectations
+
+- Foundation 1.x hosts without Identity: auth works via the host
+  default model, exactly as before.
+- Foundation 1.x hosts with Identity enabled: auth provider resolves to
+  Identity's `User` model while the module is enabled.
+- Foundation 2.0 hosts: there is no host `App\Models\User`; while
+  Identity is enabled the runtime wiring is the auth provider
+  configuration. Disabling Identity disables authentication (correct
+  per ADR-0006 — no Identity module means no auth).
+
+### Supersession
+
+This amendment supersedes the earlier mechanism statements regarding
+writing and reverting `AUTH_MODEL` in `.env`. All other statements in
+this ADR remain in force.
+
 ## Consequences
 
 ### Foundation 1.1 Changes (Backward-Compatible)
@@ -598,12 +657,13 @@ Identity contributes:
 - Permissions: `identity.users.view`, `identity.users.manage`, etc.
 - Auth model: `Modules\Identity\Models\User extends Authenticatable`
 
-Identity's install sets `AUTH_MODEL` in `.env` (configuration change,
-not source edit). On disable, `AUTH_MODEL` reverts to the host default
-(`App\Models\User`). In Foundation 1.x, basic auth continues to work
-via the host model. In Foundation 2.0, disabling Identity disables
-authentication entirely (correct behavior — no Identity module means
-no auth).
+Identity's auth provider wiring is applied at runtime while the
+module is enabled; Identity never writes `.env` (amended 2026-08-12).
+On disable, the runtime wiring is no longer applied on subsequent
+requests and auth falls back to the host default model. In Foundation
+1.x, basic auth continues to work via the host model. In Foundation
+2.0, disabling Identity disables authentication entirely (correct
+behavior — no Identity module means no auth).
 
 ### Downstream Module Dependencies
 
@@ -628,9 +688,11 @@ implicit user-table assumptions anywhere in the module ecosystem.
 
 The host model remains as a fallback. Identity's model extends
 `Authenticatable` independently (not extending `App\Models\User`).
-When Identity is installed, `AUTH_MODEL` points to Identity's model.
-When Identity is not installed, `AUTH_MODEL` defaults to the host
-model.
+While Identity is enabled, the auth provider model is configured at
+runtime to Identity's model (amended 2026-08-12); `AUTH_MODEL` may
+remain an optional explicit host override but is never written by the
+module. When Identity is not enabled, the runtime configuration is not
+applied and auth falls back to the host default model.
 
 In Foundation 2.0, `App\Models\User` is removed from the host
 template. Fresh clones do not have it.
