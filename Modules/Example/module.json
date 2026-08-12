@@ -1,0 +1,19 @@
+{
+    "schema": 1,
+    "name": "Example",
+    "code": "example",
+    "version": "1.0.0",
+    "type": "business",
+    "provider": "Modules\\Example\\ExampleServiceProvider",
+    "compatibility": {
+        "php": "^8.3",
+        "laravel": "^13.0",
+        "foundation": "^1.0"
+    },
+    "requires": {
+        "capabilities": []
+    },
+    "provides": [
+        "example.demo"
+    ]
+}
