@@ -494,7 +494,17 @@ class ModuleManager
             $this->permissions->register($manifest->code, $provider->permissionDefinitions());
         }
 
-        // Register & boot the provider itself
-        app()->register($provider);
+        // Register & boot the provider itself.
+        // Application::register() is idempotent: on same-process
+        // disable→enable it returns the already-registered instance and
+        // skips register(). Modules that apply runtime wiring in
+        // register() must re-run those side effects, so invoke
+        // register() on the fresh instance when the provider class is
+        // already known to the container.
+        if (app()->getProvider($manifest->provider) !== null) {
+            $provider->register();
+        } else {
+            app()->register($provider);
+        }
     }
 }
