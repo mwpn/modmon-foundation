@@ -64,7 +64,33 @@ class IdentityBoundaryTest extends TestCase
                 $code,
                 "{$file} must not instantiate App\\Models\\User",
             );
+            $this->assertStringNotContainsString(
+                'Modules\\Rbac',
+                $code,
+                "{$file} must not depend on RBAC",
+            );
+            $this->assertStringNotContainsString(
+                'Modules\\Tenancy',
+                $code,
+                "{$file} must not depend on Tenancy",
+            );
         }
+    }
+
+    public function test_host_bootstrap_is_not_required_for_guest_redirect(): void
+    {
+        $bootstrap = file_get_contents(dirname(__DIR__, 4).'/bootstrap/app.php');
+
+        $this->assertStringNotContainsString(
+            'identity.login',
+            $bootstrap,
+            'bootstrap/app.php must not hardcode Identity login redirect',
+        );
+        $this->assertStringNotContainsString(
+            'redirectGuestsTo',
+            $bootstrap,
+            'Identity guest redirect must not require host redirectGuestsTo edits',
+        );
     }
 
     public function test_no_cross_module_internal_imports(): void

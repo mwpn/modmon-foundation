@@ -73,7 +73,21 @@ permissions through the module-agnostic Foundation `PermissionRegistry`.
 
 ## Routes
 
-*None* — auth flow routes arrive in Phase 4.
+| Method | URI | Name | Middleware |
+|--------|-----|------|------------|
+| GET | `/login` | `identity.login` | `guest` |
+| POST | `/login` | `identity.login.submit` | `guest`, `throttle:5,1` |
+| POST | `/logout` | `identity.logout` | `auth` |
+| GET | `/forgot-password` | `identity.password.request` | `guest` |
+| POST | `/forgot-password` | `identity.password.email` | `guest` |
+| GET | `/reset-password/{token}` | `identity.password.reset` | `guest` |
+| POST | `/reset-password` | `identity.password.update` | `guest` |
+
+While Identity is enabled, the module wires Laravel's auth middleware
+guest redirect to `identity.login` at runtime (no `bootstrap/app.php`
+edit, no global `login` route-name alias). When Identity is disabled, a
+fresh request process does not load the provider, so Foundation falls
+back to Laravel's default and never depends on `identity.login`.
 
 ## Events Published
 
@@ -137,9 +151,12 @@ php artisan test --filter="Modules\\Identity"
 | AUTH_MODEL host override | ✓ |
 | `.env` untouched | ✓ |
 | Architecture boundary | ✓ |
+| Login / logout / password reset | ✓ |
+| Guest redirect portability (no host edit) | ✓ |
+| `identity:user:create` | ✓ |
 
 ## Version History
 
 | Version | Foundation | Description                                  |
 |---------|------------|----------------------------------------------|
-| 1.0.0   | ^1.0       | Initial release: manifest, model, contracts, adoption migration, runtime auth wiring. |
+| 1.0.0   | ^1.0       | Phases 1–4: ownership/adoption, runtime auth wiring, session auth flows, `identity:user:create`. |

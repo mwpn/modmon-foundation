@@ -108,7 +108,7 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
-### Identity Module (Modules/Identity/) — v1 Phases 1–3
+### Identity Module (Modules/Identity/) — v1 Phases 1–4
 
 Implemented per `docs/proposals/identity-v1.md` (approved 2026-08-12)
 and ADR-0006 (Strategy D, amended runtime auth wiring):
@@ -118,7 +118,10 @@ and ADR-0006 (Strategy D, amended runtime auth wiring):
 -   `IdentityServiceProvider` — runtime auth-provider wiring
     (`config('auth.providers.users.model')`) while enabled; respects
     explicit host `AUTH_MODEL` override; never mutates `.env`;
-    implements `ContributesRoutes` (no routes in v1)
+    wires auth middleware guest redirect to `identity.login` via
+    `afterResolving(HttpKernel)` (no host bootstrap edit); implements
+    `ContributesRoutes` for Phase 4 auth flows; registers
+    `identity:user:create`
 -   `Models/User` — canonical user model extending Authenticatable
     independently (never `App\Models\User`)
 -   `Domain/Contracts/UserQueryContract` + `Domain/ReadModels/UserReadModel`
@@ -129,9 +132,13 @@ and ADR-0006 (Strategy D, amended runtime auth wiring):
     — conditional migration: create both tables (fresh host), adopt
     compatible legacy tables unchanged, abort on incompatible schema or
     partial table state; `sessions` is never touched; no `identity_meta`
--   Tests: 42 methods under `Modules/Identity/Tests/` (Unit, Feature,
-    Architecture); `Modules` testsuite added to `phpunit.xml`
--   `docs/current-state.md` test summary updated accordingly
+-   Phase 4 auth flows — login/logout/password reset controllers,
+    views, routes (`identity.*`), reset notification URL targets
+    `identity.password.reset`, throttle on login submit
+-   Tests under `Modules/Identity/Tests/` (Unit, Feature, Architecture);
+    `Modules` testsuite in `phpunit.xml`
+-   Foundation fix (generic): `ModuleManager` calls
+    `refreshNameLookups()` after loading post-boot module routes
 
 ### Tests
 
@@ -250,9 +257,9 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 ## Next Recommended Work
 
 1.  Review and accept Module Authoring Standard v1.
-2.  Implement platform modules: Identity/Auth (Phases 4–6: auth flows,
-    `identity:user:create`, lifecycle polish, portability proof), RBAC,
-    Settings.
+2.  Implement remaining Identity phases (5–6 as scoped in the proposal)
+    and other platform modules: RBAC, Settings, SaaS/Tenancy,
+    Subscription.
 3.  Implement SaaS/Tenancy, Subscription modules.
 4.  Implement Owner/Tenant workspace modules.
 5.  Build first business module against the proven contract and authoring
