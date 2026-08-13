@@ -2,8 +2,9 @@
 
 Portable platform module that owns the user/auth domain for ModMon
 hosts: the `users` and `password_reset_tokens` tables, the canonical
-User model, and runtime Laravel auth-provider wiring (ADR-0006
-Strategy D).
+User model, runtime Laravel auth-provider wiring, and session
+authentication flows (login, logout, password reset) per ADR-0006
+Strategy D.
 
 ## Type
 
@@ -45,6 +46,12 @@ php artisan module:doctor identity
 
 # Install and enable
 php artisan module:install identity
+
+# Bootstrap a user on a fresh host (optional)
+php artisan identity:user:create \
+  --name="Site Owner" \
+  --email=owner@example.com \
+  --password="your-secure-password"
 ```
 
 The migration adopts existing `users`/`password_reset_tokens` tables on
@@ -52,15 +59,38 @@ a Foundation 1.x host (after strict schema validation) or creates them
 fresh on a Foundation 2.x host. Existing user data is never modified.
 The `sessions` table is Foundation-owned and is never touched.
 
+### Disable / Enable
+
+```bash
+php artisan module:disable identity
+php artisan module:enable identity
+```
+
+- **Disable** unregisters capabilities; subsequent requests do not load
+  Identity routes, auth wiring, guest redirect, or
+  `identity:user:create`. Data in `users` /
+  `password_reset_tokens` is preserved. There is no `.env` value to
+  revert.
+- **Enable** restores capabilities, routes, runtime auth wiring, and
+  the CLI command.
+- Foundation v1 has **no `module:uninstall`**; Identity never drops its
+  tables.
+
 ## Configuration
 
-No static configuration required.
+### Static Configuration
+
+No static configuration required. Guard/provider files
+(`config/auth.php`) stay untouched; Identity wires the auth model at
+runtime while enabled.
 
 ### Environment Variables
 
 | Variable    | Description                                                              | Default     |
 |-------------|--------------------------------------------------------------------------|-------------|
 | `AUTH_MODEL` | Optional explicit host override for the auth model. When set, it takes precedence over Identity's runtime wiring. | *(unset — Identity wires its own model)* |
+
+Identity never writes `.env` during install, enable, or disable.
 
 ### Runtime Settings
 
@@ -73,15 +103,15 @@ permissions through the module-agnostic Foundation `PermissionRegistry`.
 
 ## Routes
 
-| Method | URI | Name | Middleware |
-|--------|-----|------|------------|
-| GET | `/login` | `identity.login` | `guest` |
-| POST | `/login` | `identity.login.submit` | `guest`, `throttle:5,1` |
-| POST | `/logout` | `identity.logout` | `auth` |
-| GET | `/forgot-password` | `identity.password.request` | `guest` |
-| POST | `/forgot-password` | `identity.password.email` | `guest` |
-| GET | `/reset-password/{token}` | `identity.password.reset` | `guest` |
-| POST | `/reset-password` | `identity.password.update` | `guest` |
+| Method | URI | Name | Description |
+|--------|-----|------|-------------|
+| GET | `/login` | `identity.login` | Show the login form |
+| POST | `/login` | `identity.login.submit` | Authenticate (throttle: 5/minute) |
+| POST | `/logout` | `identity.logout` | Log out and invalidate the session |
+| GET | `/forgot-password` | `identity.password.request` | Password reset request form |
+| POST | `/forgot-password` | `identity.password.email` | Send password reset link |
+| GET | `/reset-password/{token}` | `identity.password.reset` | Password reset form |
+| POST | `/reset-password` | `identity.password.update` | Apply the new password |
 
 While Identity is enabled, the module wires Laravel's auth middleware
 guest redirect to `identity.login` at runtime (no `bootstrap/app.php`
@@ -108,11 +138,11 @@ password, or token crosses the module boundary.
 
 ## Database Ownership
 
-| Table                  | Owner    | Description                                  |
-|------------------------|----------|----------------------------------------------|
-| `users`                | Identity | Canonical user table (adopted or created).   |
-| `password_reset_tokens`| Identity | Password reset tokens (adopted or created).  |
-| `sessions`             | Foundation | Session storage; Identity never touches it. |
+| Table                  | Owner      | Description                                  |
+|------------------------|------------|----------------------------------------------|
+| `users`                | Identity   | Canonical user table (adopted or created).   |
+| `password_reset_tokens`| Identity   | Password reset tokens (adopted or created).  |
+| `sessions`             | Foundation | Session storage; Identity never touches it.  |
 
 ### Cross-Module References
 
@@ -139,24 +169,27 @@ php artisan test --filter="Modules\\Identity"
 | Area | Status |
 |------|--------|
 | Manifest validation | ✓ |
-| Model behavior | ✓ |
-| UserReadModel | ✓ |
-| UserQueryContract binding | ✓ |
-| Fresh-table creation | ✓ |
-| Legacy adoption (compatible) | ✓ |
-| Preservation of existing data | ✓ |
-| Incompatible schema rejection | ✓ |
-| Partial-table-state rejection | ✓ |
+| Compatibility declaration | ✓ |
+| Discovery | ✓ |
+| Installation | ✓ |
+| Capability registration | ✓ |
+| Routes | ✓ |
+| Migrations (fresh create + legacy adopt) | ✓ |
+| Contributions (routes/views/commands; no nav/widgets/permissions) | ✓ |
+| Disable / enable | ✓ |
+| Data preservation | ✓ |
+| Architecture boundary | ✓ |
 | Runtime auth provider wiring | ✓ |
 | AUTH_MODEL host override | ✓ |
 | `.env` untouched | ✓ |
-| Architecture boundary | ✓ |
 | Login / logout / password reset | ✓ |
 | Guest redirect portability (no host edit) | ✓ |
 | `identity:user:create` | ✓ |
+| Disable / enable lifecycle | ✓ |
+| Portability proof (clean-host + suite) | ✓ |
 
 ## Version History
 
 | Version | Foundation | Description                                  |
 |---------|------------|----------------------------------------------|
-| 1.0.0   | ^1.0       | Phases 1–4: ownership/adoption, runtime auth wiring, session auth flows, `identity:user:create`. |
+| 1.0.0   | ^1.0       | Phases 1–6 complete: portable Identity/Auth platform module (ownership, auth flows, lifecycle, clean-host portability proof). |

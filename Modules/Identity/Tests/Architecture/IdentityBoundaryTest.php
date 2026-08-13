@@ -7,9 +7,10 @@ namespace Modules\Identity\Tests\Architecture;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Architecture boundary tests: Identity must never depend on the host
- * App\Models\User or on other modules' internals, and must never touch
- * Foundation-owned infrastructure (sessions) or invent identity_meta.
+ * Architecture boundary tests (Phase 5 finalized): Identity must never
+ * depend on the host App\Models\User or on other modules' internals,
+ * must never touch Foundation-owned infrastructure (sessions), invent
+ * identity_meta, mutate .env, or require host source edits.
  */
 class IdentityBoundaryTest extends TestCase
 {
@@ -35,6 +36,11 @@ class IdentityBoundaryTest extends TestCase
         }
 
         return $files;
+    }
+
+    private function hostRoot(): string
+    {
+        return dirname(__DIR__, 4);
     }
 
     public function test_no_import_of_host_user_model(): void
@@ -64,33 +70,22 @@ class IdentityBoundaryTest extends TestCase
                 $code,
                 "{$file} must not instantiate App\\Models\\User",
             );
-            $this->assertStringNotContainsString(
-                'Modules\\Rbac',
-                $code,
-                "{$file} must not depend on RBAC",
-            );
-            $this->assertStringNotContainsString(
-                'Modules\\Tenancy',
-                $code,
-                "{$file} must not depend on Tenancy",
-            );
         }
     }
 
-    public function test_host_bootstrap_is_not_required_for_guest_redirect(): void
+    public function test_no_rbac_tenancy_or_subscription_dependency(): void
     {
-        $bootstrap = file_get_contents(dirname(__DIR__, 4).'/bootstrap/app.php');
+        foreach ($this->identityPhpFiles() as $file) {
+            $code = preg_replace('#/\*.*?\*/#s', '', file_get_contents($file)) ?? '';
 
-        $this->assertStringNotContainsString(
-            'identity.login',
-            $bootstrap,
-            'bootstrap/app.php must not hardcode Identity login redirect',
-        );
-        $this->assertStringNotContainsString(
-            'redirectGuestsTo',
-            $bootstrap,
-            'Identity guest redirect must not require host redirectGuestsTo edits',
-        );
+            foreach (['Modules\\Rbac', 'Modules\\Tenancy', 'Modules\\Subscription'] as $forbidden) {
+                $this->assertStringNotContainsString(
+                    $forbidden,
+                    $code,
+                    "{$file} must not depend on {$forbidden}",
+                );
+            }
+        }
     }
 
     public function test_no_cross_module_internal_imports(): void
@@ -122,14 +117,10 @@ class IdentityBoundaryTest extends TestCase
     public function test_identity_migrations_never_touch_sessions(): void
     {
         $migrationDir = __DIR__.'/../../Database/Migrations';
-        if (! is_dir($migrationDir)) {
-            $this->markTestSkipped('No migrations directory yet.');
-        }
+        $this->assertDirectoryExists($migrationDir);
 
         foreach (glob($migrationDir.'/*.php') ?: [] as $file) {
             $content = file_get_contents($file);
-
-            // Strip comments/docblocks so ownership prose doesn't trip the check
             $code = preg_replace('#/\*.*?\*/#s', '', $content) ?? '';
 
             $this->assertStringNotContainsString(
@@ -146,6 +137,117 @@ class IdentityBoundaryTest extends TestCase
                 "Schema::drop('sessions'",
                 $code,
                 "{$file} must never drop the Foundation-owned sessions table",
+            );
+        }
+    }
+
+    public function test_identity_source_never_mutates_env_file(): void
+    {
+        foreach ($this->identityPhpFiles() as $file) {
+            $code = preg_replace('#/\*.*?\*/#s', '', file_get_contents($file)) ?? '';
+
+            $this->assertDoesNotMatchRegularExpression(
+                '/file_put_contents\s*\(\s*[\'"].*\.env/',
+                $code,
+                "{$file} must never write .env",
+            );
+            $this->assertStringNotContainsString(
+                "putenv('AUTH_MODEL",
+                $code,
+                "{$file} must never set AUTH_MODEL via putenv",
+            );
+        }
+    }
+
+    public function test_host_bootstrap_is_not_required_for_guest_redirect(): void
+    {
+        $bootstrap = file_get_contents($this->hostRoot().'/bootstrap/app.php');
+
+        $this->assertStringNotContainsString(
+            'identity.login',
+            $bootstrap,
+            'bootstrap/app.php must not hardcode Identity login redirect',
+        );
+        $this->assertStringNotContainsString(
+            'redirectGuestsTo',
+            $bootstrap,
+            'Identity guest redirect must not require host redirectGuestsTo edits',
+        );
+    }
+
+    public function test_host_routes_and_auth_config_are_not_identity_coupled(): void
+    {
+        $web = file_get_contents($this->hostRoot().'/routes/web.php');
+        $auth = file_get_contents($this->hostRoot().'/config/auth.php');
+
+        $this->assertStringNotContainsString('Modules\\Identity', $web);
+        $this->assertStringNotContainsString('identity.login', $web);
+        $this->assertStringNotContainsString('Modules\\Identity', $auth);
+    }
+
+    public function test_foundation_has_no_identity_specific_knowledge(): void
+    {
+        $foundationDir = $this->hostRoot().'/app/Foundation';
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($foundationDir, \FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $content = file_get_contents($file->getPathname());
+            $this->assertStringNotContainsString(
+                'identity.login',
+                $content,
+                "{$file->getPathname()} must not hardcode identity.login",
+            );
+            $this->assertStringNotContainsString(
+                'Modules\\Identity',
+                $content,
+                "{$file->getPathname()} must not import Identity",
+            );
+        }
+    }
+
+    public function test_provider_does_not_contribute_nav_widgets_or_permissions(): void
+    {
+        $provider = file_get_contents(dirname(__DIR__, 2).'/IdentityServiceProvider.php');
+
+        $this->assertStringNotContainsString('ContributesNavigation', $provider);
+        $this->assertStringNotContainsString('ContributesDashboard', $provider);
+        $this->assertStringNotContainsString('ContributesPermissions', $provider);
+        $this->assertStringContainsString('ContributesRoutes', $provider);
+    }
+
+    public function test_readme_covers_authoring_standard_contract_sections(): void
+    {
+        $readme = file_get_contents(dirname(__DIR__, 2).'/README.md');
+
+        foreach ([
+            '## Type',
+            '## Compatibility',
+            '## Provides',
+            '## Requires',
+            '## Optional Integrations',
+            '## Installation',
+            '## Configuration',
+            '## Permissions',
+            '## Routes',
+            '## Events Published',
+            '## Events Consumed',
+            '## Public Contracts',
+            '## Database Ownership',
+            '## Navigation Contributions',
+            '## Dashboard Contributions',
+            '## Testing',
+            '## Version History',
+        ] as $section) {
+            $this->assertStringContainsString(
+                $section,
+                $readme,
+                "README must include Authoring Standard §16 section: {$section}",
             );
         }
     }

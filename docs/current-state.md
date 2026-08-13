@@ -108,10 +108,12 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
-### Identity Module (Modules/Identity/) — v1 Phases 1–4
+### Identity Module (Modules/Identity/) — v1 Phases 1–6 COMPLETE
 
 Implemented per `docs/proposals/identity-v1.md` (approved 2026-08-12)
-and ADR-0006 (Strategy D, amended runtime auth wiring):
+and ADR-0006 (Strategy D, amended runtime auth wiring). Compliance:
+`docs/reports/identity-compliance-v1.md` — **FULL COMPLIANCE** with
+Authoring Standard v1 Portable Module Definition of Done.
 
 -   `module.json` — platform type, provides `identity.user` +
     `identity.authentication`, no required capabilities
@@ -120,7 +122,7 @@ and ADR-0006 (Strategy D, amended runtime auth wiring):
     explicit host `AUTH_MODEL` override; never mutates `.env`;
     wires auth middleware guest redirect to `identity.login` via
     `afterResolving(HttpKernel)` (no host bootstrap edit); implements
-    `ContributesRoutes` for Phase 4 auth flows; registers
+    `ContributesRoutes` for auth flows; registers
     `identity:user:create`
 -   `Models/User` — canonical user model extending Authenticatable
     independently (never `App\Models\User`)
@@ -135,10 +137,17 @@ and ADR-0006 (Strategy D, amended runtime auth wiring):
 -   Phase 4 auth flows — login/logout/password reset controllers,
     views, routes (`identity.*`), reset notification URL targets
     `identity.password.reset`, throttle on login submit
+-   Phase 5 lifecycle polish — README finalized to Authoring Standard
+    §16; `IdentityDisableEnableTest`; architecture boundary tests
+    finalized
+-   Phase 6 portability proof — clean-host copy→doctor→install→use
+    without unrelated host source edits; `IdentityPortabilityTest`;
+    compliance report published
 -   Tests under `Modules/Identity/Tests/` (Unit, Feature, Architecture);
     `Modules` testsuite in `phpunit.xml`
--   Foundation fix (generic): `ModuleManager` calls
-    `refreshNameLookups()` after loading post-boot module routes
+-   Foundation fixes (generic, not Identity-specific knowledge):
+    migration `--realpath`, route `refreshNameLookups()`, same-process
+    provider `register()` re-invoke on enable
 
 ### Tests
 
@@ -257,8 +266,7 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 ## Next Recommended Work
 
 1.  Review and accept Module Authoring Standard v1.
-2.  Implement remaining Identity phases (5–6 as scoped in the proposal)
-    and other platform modules: RBAC, Settings, SaaS/Tenancy,
+2.  Implement other platform modules: RBAC, Settings, SaaS/Tenancy,
     Subscription.
 3.  Implement SaaS/Tenancy, Subscription modules.
 4.  Implement Owner/Tenant workspace modules.
