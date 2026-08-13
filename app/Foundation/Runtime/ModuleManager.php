@@ -467,6 +467,12 @@ class ModuleManager
                     Route::middleware('web')->group($file);
                 }
             }
+
+            // Routes loaded post-boot (module:install / module:enable / app
+            // boot after Foundation's own provider) register fluently-defined
+            // names without refreshing the name look-up table, so route()
+            // cannot resolve them. Refresh after loading module routes.
+            Route::getRoutes()->refreshNameLookups();
         }
 
         // Navigation
