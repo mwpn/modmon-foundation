@@ -19,12 +19,12 @@ class RbacAuthorizationTest extends RbacTestCase
     public function test_user_with_role_has_permission(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
         $this->userQuery->seed(2);
         $this->roles()->assignRoleToUser('2', $roleId);
 
         $this->assertTrue(
-            $this->authorization()->identityHasPermission('2', 'rbac.roles.manage'),
+            $this->authorization()->identityHasPermission('2', 'rbac-test.permission'),
         );
     }
 
@@ -35,14 +35,14 @@ class RbacAuthorizationTest extends RbacTestCase
         $this->roles()->assignRoleToUser('2', $roleId);
 
         $this->assertFalse(
-            $this->authorization()->identityHasPermission('2', 'rbac.roles.manage'),
+            $this->authorization()->identityHasPermission('2', 'rbac-test.permission'),
         );
     }
 
     public function test_unknown_user_has_no_permissions(): void
     {
         $this->assertFalse(
-            $this->authorization()->identityHasPermission('999', 'rbac.roles.manage'),
+            $this->authorization()->identityHasPermission('999', 'rbac-test.permission'),
         );
     }
 
@@ -51,35 +51,35 @@ class RbacAuthorizationTest extends RbacTestCase
         $this->userQuery->seed(2);
 
         $this->assertFalse(
-            $this->authorization()->identityHasPermission('2', 'rbac.roles.manage'),
+            $this->authorization()->identityHasPermission('2', 'rbac-test.permission'),
         );
     }
 
     public function test_permission_removed_from_role_revokes_access(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
         $this->userQuery->seed(2);
         $this->roles()->assignRoleToUser('2', $roleId);
 
-        $this->roles()->removePermissionFromRole($roleId, 'rbac.roles.manage');
+        $this->roles()->removePermissionFromRole($roleId, 'rbac-test.permission');
 
         $this->assertFalse(
-            $this->authorization()->identityHasPermission('2', 'rbac.roles.manage'),
+            $this->authorization()->identityHasPermission('2', 'rbac-test.permission'),
         );
     }
 
     public function test_role_removed_from_user_revokes_access(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
         $this->userQuery->seed(2);
         $this->roles()->assignRoleToUser('2', $roleId);
 
         $this->roles()->removeRoleFromUser('2', $roleId);
 
         $this->assertFalse(
-            $this->authorization()->identityHasPermission('2', 'rbac.roles.manage'),
+            $this->authorization()->identityHasPermission('2', 'rbac-test.permission'),
         );
     }
 

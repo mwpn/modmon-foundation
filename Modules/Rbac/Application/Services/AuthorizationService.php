@@ -24,7 +24,7 @@ final class AuthorizationService implements AuthorizationContract
 
     public function identityHasPermission(string $userId, string $permissionId): bool
     {
-        if (! $this->userQuery->exists($userId)) {
+        if ($this->userQuery->findById((int) $userId) === null) {
             return false;
         }
 

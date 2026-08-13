@@ -80,7 +80,7 @@ final class RbacService implements RoleManagementContract
     {
         $this->assertRoleExists($roleId);
 
-        if (! $this->userQuery->exists($userId)) {
+        if ($this->userQuery->findById((int) $userId) === null) {
             throw new UnknownUserException("User '{$userId}' does not exist in the Identity user domain.");
         }
 

@@ -19,9 +19,9 @@ class RbacBoundaryTest extends TestCase
     private function rbacPhpFiles(): array
     {
         $files = [];
-        $moduleDir = base_path('Modules/Rbac');
+        $moduleDir = $this->moduleRoot();
 
-        if (! is_dir($moduleDir)) {
+        if ($moduleDir === '' || ! is_dir($moduleDir)) {
             return [];
         }
 
@@ -40,6 +40,28 @@ class RbacBoundaryTest extends TestCase
         }
 
         return $files;
+    }
+
+    /**
+     * Locate the Modules/Rbac root by walking up from this test file —
+     * works standalone (no Laravel app) and from any repository layout.
+     */
+    private function moduleRoot(): string
+    {
+        $dir = __DIR__;
+
+        while (true) {
+            if (is_dir($dir.'/Modules/Rbac')) {
+                return $dir.'/Modules/Rbac';
+            }
+
+            $parent = dirname($dir);
+            if ($parent === $dir) {
+                return '';
+            }
+
+            $dir = $parent;
+        }
     }
 
     public function test_module_source_files_are_audited(): void

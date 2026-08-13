@@ -20,11 +20,11 @@ class RbacPermissionAssignmentTest extends RbacTestCase
     public function test_assign_registered_permission_to_role(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
 
         $this->assertDatabaseHas('rbac_role_permission', [
             'role_id' => $roleId,
-            'permission_id' => 'rbac.roles.manage',
+            'permission_id' => 'rbac-test.permission',
         ]);
     }
 
@@ -41,38 +41,38 @@ class RbacPermissionAssignmentTest extends RbacTestCase
     {
         $this->expectException(RoleNotFoundException::class);
 
-        $this->roles()->assignPermissionToRole(999, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole(999, 'rbac-test.permission');
     }
 
     public function test_remove_permission_from_role(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
-        $this->roles()->removePermissionFromRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
+        $this->roles()->removePermissionFromRole($roleId, 'rbac-test.permission');
 
         $this->assertDatabaseMissing('rbac_role_permission', [
             'role_id' => $roleId,
-            'permission_id' => 'rbac.roles.manage',
+            'permission_id' => 'rbac-test.permission',
         ]);
     }
 
     public function test_assignment_is_idempotent(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
 
         $count = $this->roles()->rolePermissionIds($roleId);
 
-        $this->assertSame(['rbac.roles.manage'], $count);
+        $this->assertSame(['rbac-test.permission'], $count);
     }
 
     public function test_registered_permission_ids_are_exposed_without_snapshot(): void
     {
         $roleId = $this->roles()->createRole('admin');
-        $this->roles()->assignPermissionToRole($roleId, 'rbac.roles.manage');
+        $this->roles()->assignPermissionToRole($roleId, 'rbac-test.permission');
 
-        $this->assertSame(['rbac.roles.manage'], $this->roles()->registeredPermissionIds());
+        $this->assertSame(['rbac-test.permission'], $this->roles()->registeredPermissionIds());
     }
 
     private function roles(): RoleManagementContract

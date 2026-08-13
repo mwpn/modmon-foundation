@@ -59,11 +59,19 @@ Requires modmon-settings (not yet available in Foundation v1).
 
 ## Permissions
 
-This module **declares no permissions** in Phase 1. It is the
-*enforcer*: it consumes the Foundation `PermissionRegistryContract` as
-the source of truth for which permission ids may be assigned to roles.
-Only registered permission ids are assignable; nothing is snapshotted
-into RBAC tables.
+This module **declares** its own permission through the canonical
+Foundation `ContributesPermissions` mechanism:
+
+| Permission          | Label        | Notes                                   |
+|---------------------|--------------|-----------------------------------------|
+| `rbac.roles.manage` | Manage Roles | Can manage RBAC roles and assignments.  |
+
+The module is also the *enforcer*: it consumes the Foundation
+`PermissionRegistryContract` as the source of truth for which
+permission ids may be assigned to roles. Only currently registered
+permission ids are assignable; nothing is snapshotted into RBAC
+tables, and a permission from a disabled module is never considered
+registered.
 
 ## Routes
 
@@ -106,6 +114,38 @@ Consumers depend on these contracts, never on
   caching framework. Checks run against the RBAC-owned tables at
   call time.
 
+### Laravel Gate integration (Phase 2)
+
+While the module is enabled, RBAC wires a single `Gate::before()`
+callback (`Modules\Rbac\Application\Services\RuntimeAuthorization`)
+so Laravel authorization works without importing RBAC internals:
+
+```php
+$user->can('rbac.roles.manage');          // Authenticatable::can()
+Gate::allows('rbac.roles.manage');        // current authenticated user
+Gate::forUser($user)->allows('rbac.roles.manage');
+```
+
+- The callback answers **only** for permission ids currently
+  contributed by the `rbac` module (live `PermissionRegistry` lookup —
+  never a boot-time snapshot), then delegates to the public
+  `AuthorizationContract` (`identityHasPermission`).
+- The user is resolved through `getAuthIdentifier()` and validated
+  through the Identity `UserQueryContract` — no Identity/host model
+  is imported.
+- The Gate `abilities` map is never polluted: the integration uses a
+  `before` callback, so `Gate::has()` stays false for RBAC
+  permissions.
+- **Disable semantics:** the Foundation lifecycle removes the module's
+  permissions from the `PermissionRegistry`, so the callback returns
+  null for every ability — no active authorization contribution is
+  left behind. In a fresh process a disabled module's provider never
+  boots, so the callback is never registered at all. Role/assignment
+  data is preserved.
+- **Re-enable semantics:** contributions and the Gate behavior are
+  restored; the callback is registered at most once per application
+  lifecycle (no accumulation on repeated disable/enable cycles).
+
 ## Database Ownership
 
 | Table                    | Purpose                                  |
@@ -131,7 +171,7 @@ preserves all rows; no data is deleted.
 
 ## Testing
 
-Phase 1 tests live in the host under `tests/Feature/Rbac/` (33
+Phase 1–2 tests live in the host under `tests/Feature/Rbac/` (47
 methods). Run with:
 
 ```bash
@@ -146,11 +186,12 @@ php artisan test --filter="Rbac"
 | Discovery | Covered by Foundation `module:list` |
 | Installation | Covered — `RbacLifecycleTest` |
 | Capability registration | Covered — `RbacContractResolutionTest` |
-| Routes | N/A (no routes in Phase 1) |
+| Routes | N/A (no routes in Phase 1–2) |
 | Migrations | Covered — `RbacLifecycleTest` |
-| Contributions | N/A (no contributions in Phase 1) |
-| Disable/Enable | Covered — `RbacLifecycleTest` |
-| Data preservation | Covered — `RbacLifecycleTest` |
+| Contributions | Covered — `RbacPermissionContributionTest` |
+| Gate integration | Covered — `RbacGateIntegrationTest` |
+| Disable/Enable | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest` |
+| Data preservation | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest` |
 | Architecture boundary | Covered — `RbacBoundaryTest` |
 | Role CRUD | Covered — `RbacRoleCrudTest` |
 | Permission assignment | Covered — `RbacPermissionAssignmentTest` |
@@ -161,4 +202,4 @@ php artisan test --filter="Rbac"
 
 | Version | Foundation | Description       |
 |---------|------------|-------------------|
-| 1.0.0   | ^1.0       | Phase 1: core domain + persistence + public integration. |
+| 1.0.0   | ^1.0       | Phase 1: core domain + persistence + public integration. Phase 2: permission contribution (`rbac.roles.manage`) + Laravel Gate integration with disable/re-enable runtime semantics. |

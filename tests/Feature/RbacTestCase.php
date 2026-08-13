@@ -69,7 +69,7 @@ abstract class RbacTestCase extends BaseTestCase
             ),
         );
 
-        $this->registerFixturePermission('rbac.roles.manage');
+        $this->registerFixturePermission('rbac-test.permission');
 
         // --realpath is required on Windows: without it Laravel prepends
         // basePath() to the already-absolute path, doubling it and
