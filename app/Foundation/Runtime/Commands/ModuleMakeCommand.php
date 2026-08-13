@@ -20,7 +20,13 @@ use Illuminate\Support\Str;
  */
 class ModuleMakeCommand extends Command
 {
-    protected $signature = 'module:make {name : Module name in PascalCase or Title Case, e.g. WaterBilling or "Water Billing"} {--code= : Override the module code (lowercase alphanumeric with hyphens)} {--type=business : Module type: platform, business, or integration}';
+    protected $signature = 'module:make
+                            {name : Module name in PascalCase or Title Case, e.g. WaterBilling or "Water Billing"}
+                            {--code= : Override the module code (lowercase alphanumeric with hyphens)}
+                            {--type=business : Module type: platform, business, or integration}
+                            {--purpose= : One or two sentences describing the module (README)}
+                            {--provides= : Comma-separated capability identifiers this module provides}
+                            {--requires= : Comma-separated capability identifiers required before install}';
 
     protected $description = 'Scaffold a new portable module (module.json, provider, README)';
 
@@ -29,8 +35,11 @@ class ModuleMakeCommand extends Command
         $name = trim($this->argument('name'));
         $code = $this->option('code') ?: $this->codeFromName($name);
         $type = $this->option('type');
+        $purpose = trim((string) $this->option('purpose'));
+        $provides = $this->parseCapabilityList($this->option('provides'));
+        $requires = $this->parseCapabilityList($this->option('requires'));
 
-        $identityError = $this->validateIdentity($name, $code, $type);
+        $identityError = $this->validateIdentity($name, $code, $type, $provides, $requires);
         if ($identityError !== null) {
             $this->error($identityError);
 
@@ -48,7 +57,7 @@ class ModuleMakeCommand extends Command
             return self::FAILURE;
         }
 
-        $this->scaffold($modulesPath, $directory, $name, $code, $type, $provider);
+        $this->scaffold($modulesPath, $directory, $name, $code, $type, $provider, $purpose, $provides, $requires);
 
         $this->info("Module '{$code}' scaffolded in Modules/{$directory}.");
         $this->line("The module is in the discovered state. Run `php artisan module:doctor {$code}` to verify it.");
@@ -56,7 +65,7 @@ class ModuleMakeCommand extends Command
         return self::SUCCESS;
     }
 
-    private function validateIdentity(string $name, string $code, string $type): ?string
+    private function validateIdentity(string $name, string $code, string $type, array $provides, array $requires): ?string
     {
         if ($name === '') {
             return 'Module name must not be empty.';
@@ -74,7 +83,27 @@ class ModuleMakeCommand extends Command
             return "Invalid module type '{$type}'. Use one of: platform, business, integration.";
         }
 
+        foreach (array_merge($provides, $requires) as $capability) {
+            if (! preg_match('/^[a-z][a-z0-9\-]*(?:\.[a-z][a-z0-9\-]*)+$/', $capability)) {
+                return "Invalid capability identifier '{$capability}'. Use lowercase dot notation (e.g. identity.user).";
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function parseCapabilityList(mixed $value): array
+    {
+        if ($value === null || $value === false || $value === '') {
+            return [];
+        }
+
+        $items = array_map('trim', explode(',', (string) $value));
+
+        return array_values(array_filter($items, fn (string $item) => $item !== ''));
     }
 
     /**
@@ -115,18 +144,18 @@ class ModuleMakeCommand extends Command
         return null;
     }
 
-    private function scaffold(string $modulesPath, string $directory, string $name, string $code, string $type, string $provider): void
+    private function scaffold(string $modulesPath, string $directory, string $name, string $code, string $type, string $provider, string $purpose, array $provides, array $requires): void
     {
         $modulePath = $modulesPath.'/'.$directory;
 
         File::makeDirectory($modulePath, 0755, true);
 
-        File::put($modulePath.'/module.json', $this->renderManifest($name, $code, $type, $provider));
+        File::put($modulePath.'/module.json', $this->renderManifest($name, $code, $type, $provider, $provides, $requires));
         File::put($modulePath.'/'.$directory.'ServiceProvider.php', $this->renderProvider($directory, $name));
-        File::put($modulePath.'/README.md', $this->renderReadme($directory, $name, $code, $type));
+        File::put($modulePath.'/README.md', $this->renderReadme($directory, $name, $code, $type, $purpose, $provides, $requires));
     }
 
-    private function renderManifest(string $name, string $code, string $type, string $provider): string
+    private function renderManifest(string $name, string $code, string $type, string $provider, array $provides, array $requires): string
     {
         $manifest = [
             'schema' => 1,
@@ -141,9 +170,9 @@ class ModuleMakeCommand extends Command
                 'foundation' => '^1.0',
             ],
             'requires' => [
-                'capabilities' => [],
+                'capabilities' => $requires,
             ],
-            'provides' => [],
+            'provides' => $provides,
         ];
 
         return json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
@@ -187,12 +216,30 @@ PHP;
         ]);
     }
 
-    private function renderReadme(string $directory, string $name, string $code, string $type): string
+    private function renderReadme(string $directory, string $name, string $code, string $type, string $purpose, array $provides, array $requires): string
     {
+        $purposeText = $purpose !== ''
+            ? $purpose
+            : '{TODO: Describe what the module does in one or two sentences.}';
+
+        $providesSection = $provides === []
+            ? '*None* — declare provided capabilities in `module.json` and document them here.'
+            : implode("\n", array_map(
+                fn (string $capability) => "- `{$capability}`",
+                $provides,
+            ));
+
+        $requiresSection = $requires === []
+            ? '*None* — declare required capabilities in `module.json` and document them here.'
+            : implode("\n", array_map(
+                fn (string $capability) => "- `{$capability}`",
+                $requires,
+            ));
+
         $template = <<<'MD'
 # {NAME}
 
-{TODO: Describe what the module does in one or two sentences.}
+{PURPOSE}
 
 ## Type
 
@@ -208,11 +255,11 @@ PHP;
 
 ## Provides
 
-*None* — declare provided capabilities in `module.json` and document them here.
+{PROVIDES}
 
 ## Requires
 
-*None* — declare required capabilities in `module.json` and document them here.
+{REQUIRES}
 
 ## Optional Integrations
 
@@ -282,7 +329,7 @@ No cross-module database references.
 ## Testing
 
 ```bash
-php artisan test --filter="Modules\\\\{NAME}"
+php artisan test --filter="Modules\\{DIRECTORY}"
 ```
 
 ### Test Coverage
@@ -312,6 +359,9 @@ MD;
             '{NAME}' => $name,
             '{CODE}' => $code,
             '{TYPE}' => $type,
+            '{PURPOSE}' => $purposeText,
+            '{PROVIDES}' => $providesSection,
+            '{REQUIRES}' => $requiresSection,
         ]);
     }
 }

@@ -21,7 +21,7 @@ For every task, read only what is necessary:
 3.  `docs/requirements-locked.md`;
 4.  the target module's `README.md` and `module.json`, if working on a
     module;
-5.  `docs/module-authoring-standard-v1.md`, if creating or modifying a
+5.  `docs/module-authoring-standard.md`, if creating or modifying a
     module;
 6.  relevant sections of `docs/architecture.md`,
     `docs/portable-module-contract.md`, `docs/dependency-rules.md`, or
@@ -102,33 +102,33 @@ required capabilities, not Laravel alone.
 
 ## Module Authoring Workflow
 
-When creating a new portable module, follow this workflow:
+When creating a new portable module, the agent needs only five inputs:
+**name**, **type** (platform/business/integration), **purpose**,
+**provides**, and **requires** (capabilities).
 
 ```
-read AGENTS.md
+read AGENTS.md + docs/module-authoring-standard.md
     ↓
-read docs/module-authoring-standard-v1.md
+php artisan module:make {Name} --type=... --purpose=... --provides=... --requires=...
     ↓
-inspect module.json + README of related/required modules
+inspect module.json + README of modules listed in requires
     ↓
-inspect only relevant Foundation SDK contracts
-    ↓
-implement (module.json, provider, contributions, routes, migrations, views)
+implement (contributions, routes, migrations, views, tests) — copy Modules/Example patterns
     ↓
 verify (module:doctor, module:install, tests, disable/enable cycle)
     ↓
-update module README following docs/templates/module-readme-template.md
-    ↓
-run certification checklist (section 18 of authoring standard)
+update README + certification checklist (section 14 of authoring standard)
     ↓
 report
 ```
 
-Templates for `module.json` and `README.md` are in `docs/templates/`.
+Canonical standard: `docs/module-authoring-standard.md`.  
+Extended reference: `docs/module-authoring-standard-v1.md`.  
+Templates: `docs/templates/`.  
+Proven platform reference: sibling repo `modmon-identity`.
 
-The goal is to minimize expensive broad repository rediscovery. The
-module authoring standard documents all Foundation v1 APIs available to
-module authors.
+Do not read Foundation source unless the authoring standard is ambiguous
+on a specific API.
 
 ## Task Discipline
 

@@ -1,8 +1,9 @@
 # Module Authoring Standard v1
 
 **Applies to:** Foundation Contract v1.0.0  
-**Status:** Canonical  
-**Last updated:** 2026-08-12
+**Status:** Extended reference (superseded for agent workflow by
+[`module-authoring-standard.md`](module-authoring-standard.md))  
+**Last updated:** 2026-08-13
 
 ---
 

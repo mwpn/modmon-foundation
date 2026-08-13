@@ -183,12 +183,12 @@ npm run build
 ## Test Summary
 
 94 test methods across 3 suites (Architecture, Feature, Unit) at
-Foundation v1. `module:make` adds 12 focused feature tests
-(tests/Feature/Foundation/ModuleMakeCommandTest.php) for the scaffolding
-command. Pre-audit: 80 tests / 146 assertions. Post-audit: 94 tests.
-With module:make: 106 tests. Identity module tests (42 methods) run in
-`modmon-identity` or a host with the module installed — not in Foundation
-suite by default.
+Foundation v1. `module:make` adds 15 focused feature tests
+(`tests/Feature/Foundation/ModuleMakeCommandTest.php`) including authoring
+standard minimum conformance. Pre-audit: 80 tests / 146 assertions.
+Post-audit: 94 tests. With module:make: 109 tests. Identity module tests
+(42 methods) run in `modmon-identity` or a host with the module installed
+— not in Foundation suite by default.
 
 ### Known Limitation
 
@@ -197,18 +197,18 @@ Routes registered by a module during the same HTTP request that calls
 will not load a disabled module's routes. This is a Laravel framework
 limitation (route collection is immutable once built).
 
-## Module Authoring Standard v1
+## Module Authoring Standard
 
-Completed 2026-08-12. Defines the canonical contract and workflow for
-building portable ModMon modules.
+Canonical agent entrypoint: `docs/module-authoring-standard.md` (concise,
+executable). Extended reference: `docs/module-authoring-standard-v1.md`.
 
 ### Deliverables
 
--   `docs/module-authoring-standard-v1.md` — 18-section canonical
-    standard covering identity, manifest, structure, provider,
-    capabilities, cross-module communication, database, routes,
-    permissions, navigation, dashboards, settings, events, lifecycle,
-    versioning, README contract, testing, and Definition of Done.
+-   `docs/module-authoring-standard.md` — canonical agent workflow
+    (identity, manifest, capabilities, lifecycle, contributions, tests,
+    certification, Definition of Done).
+-   `docs/module-authoring-standard-v1.md` — extended 18-section
+    reference (superseded for agent workflow by the concise standard).
 -   `docs/templates/module-readme-template.md` — standard README template.
 -   `docs/templates/module-json-template.json` — canonical manifest
     template.
@@ -218,10 +218,17 @@ building portable ModMon modules.
     (recommended) and `module:verify` (deferred).
 -   `docs/reports/example-module-compliance-v1.md` — Example module
     compliance report.
--   `AGENTS.md` updated with Module Authoring Workflow section and read
-    order.
--   `docs/agent-workflow.md` updated with Module Authoring Task section.
+-   `AGENTS.md` — short entrypoint pointing to the canonical standard.
+-   `docs/agent-workflow.md` — agent task templates.
 -   `Modules/Example/README.md` expanded to follow README contract.
+
+### module:make
+
+Scaffolds minimum portable structure: `module.json`, service provider,
+README. Accepts `--type`, `--purpose`, `--provides`, and `--requires`
+(comma-separated capabilities). Does not install, migrate, or mutate runtime
+state. Regression tests in
+`tests/Feature/Foundation/ModuleMakeCommandTest.php`.
 
 ### Known Foundation v1 Limitations (from authoring standard appendix B)
 
@@ -250,12 +257,10 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Review and accept Module Authoring Standard v1.
-2.  Implement other platform modules: RBAC, Settings, SaaS/Tenancy,
-    Subscription.
-3.  Implement SaaS/Tenancy, Subscription modules.
-4.  Implement Owner/Tenant workspace modules.
-5.  Build first business module against the proven contract and authoring
+1.  Implement platform modules using the authoring standard: RBAC,
+    Settings, SaaS/Tenancy, Subscription.
+2.  Implement Owner/Tenant workspace modules.
+3.  Build first business module against the proven contract and authoring
     standard.
-6.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
     at least two real modules have been authored.

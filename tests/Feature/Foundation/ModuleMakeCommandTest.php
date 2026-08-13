@@ -26,7 +26,7 @@ class ModuleMakeCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (['WaterBilling', 'Inventory', 'MeterReading'] as $directory) {
+        foreach (['WaterBilling', 'Inventory', 'MeterReading', 'Rbac'] as $directory) {
             $path = $this->modulesPath.'/'.$directory;
             if (File::isDirectory($path)) {
                 File::deleteDirectory($path);
@@ -113,6 +113,87 @@ class ModuleMakeCommandTest extends TestCase
         $this->assertStringContainsString('^1.0', $readme);
         $this->assertStringContainsString('module:doctor water-billing', $readme);
         $this->assertStringContainsString('module:install water-billing', $readme);
+        $this->assertStringContainsString('Modules\\\\WaterBilling', $readme);
+    }
+
+    public function test_it_scaffolds_provides_requires_and_purpose_from_options(): void
+    {
+        $this->artisan('module:make', [
+            'name' => 'Rbac',
+            '--type' => 'platform',
+            '--purpose' => 'Role and permission management.',
+            '--provides' => 'authorization.permission',
+            '--requires' => 'identity.user,identity.authentication',
+        ])->assertSuccessful();
+
+        $data = json_decode(
+            File::get($this->modulesPath.'/Rbac/module.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+
+        $errors = app(ManifestValidator::class)->validate($data);
+
+        $this->assertSame([], $errors);
+        $this->assertSame('platform', $data['type']);
+        $this->assertSame(['authorization.permission'], $data['provides']);
+        $this->assertSame(['identity.user', 'identity.authentication'], $data['requires']['capabilities']);
+
+        $readme = File::get($this->modulesPath.'/Rbac/README.md');
+
+        $this->assertStringContainsString('Role and permission management.', $readme);
+        $this->assertStringContainsString('`authorization.permission`', $readme);
+        $this->assertStringContainsString('`identity.user`', $readme);
+        $this->assertStringContainsString('`identity.authentication`', $readme);
+    }
+
+    public function test_it_rejects_invalid_capability_identifiers(): void
+    {
+        $this->artisan('module:make', [
+            'name' => 'Inventory',
+            '--provides' => 'INVALID_CAPABILITY',
+        ])->assertFailed()
+            ->expectsOutputToContain('Invalid capability identifier');
+
+        $this->assertFileDoesNotExist($this->modulesPath.'/Inventory');
+    }
+
+    public function test_scaffolded_module_conforms_to_authoring_standard_minimum(): void
+    {
+        $this->artisan('module:make', [
+            'name' => 'WaterBilling',
+            '--type' => 'business',
+            '--purpose' => 'Water utility billing.',
+            '--provides' => 'billing.invoice',
+        ])->assertSuccessful();
+
+        $modulePath = $this->modulesPath.'/WaterBilling';
+        $data = json_decode(
+            File::get($modulePath.'/module.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+
+        $this->assertSame([], app(ManifestValidator::class)->validate($data));
+        $this->assertSame('WaterBilling', $data['name']);
+        $this->assertSame('water-billing', $data['code']);
+        $this->assertSame('Modules\\WaterBilling\\WaterBillingServiceProvider', $data['provider']);
+        $this->assertSame('^8.3', $data['compatibility']['php']);
+        $this->assertSame('^13.0', $data['compatibility']['laravel']);
+        $this->assertSame('^1.0', $data['compatibility']['foundation']);
+        $this->assertIsArray($data['requires']['capabilities']);
+        $this->assertIsArray($data['provides']);
+
+        $providerFile = $modulePath.'/WaterBillingServiceProvider.php';
+        $this->assertFileExists($providerFile);
+        $this->assertTrue(class_exists($data['provider']));
+        $this->assertTrue(is_subclass_of($data['provider'], ServiceProvider::class));
+
+        $discovery = app(ModuleDiscovery::class)->discover();
+        $this->assertArrayHasKey('water-billing', $discovery['manifests']);
+        $this->assertSame([], $discovery['errors']);
+
+        $this->assertNull(app(ModuleRegistrarContract::class)->getState('water-billing'));
     }
 
     public function test_output_is_deterministic(): void

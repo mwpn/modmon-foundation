@@ -46,7 +46,7 @@ Update docs/current-state.md if repository reality changes.
 For creating or modifying a portable module:
 
 1.  `AGENTS.md`
-2.  `docs/module-authoring-standard-v1.md`
+2.  `docs/module-authoring-standard.md`
 3.  `docs/templates/module-readme-template.md` and
     `docs/templates/module-json-template.json`
 4.  target module `README.md` + `module.json`
@@ -55,7 +55,7 @@ For creating or modifying a portable module:
 Do not read Foundation source unless the authoring standard is ambiguous
 on a specific API.
 
-After implementation, run the certification checklist (section 18 of
+After implementation, run the certification checklist (section 14 of
 the authoring standard).
 
 ## Architecture Task
