@@ -117,7 +117,36 @@ install via copy-from-Git (no host source edits).
 | Module   | Repository              | Status                          |
 | -------- | ----------------------- | ------------------------------- |
 | Identity | `mwpn/modmon-identity`  | v1.0.0 — certified portable     |
-| RBAC     | (planned)               | —                               |
+| RBAC     | `mwpn/modmon-rbac` (planned extract) | Phase 1 core implemented in this host (`Modules/Rbac`) — not Foundation-shipped |
+
+RBAC Phase 1 (2026-08-13): core domain + persistence + public
+integration implemented per `docs/module-authoring-standard.md`.
+`requires`: `identity.user` (canonical Identity capability).
+`provides`: `authorization.permission` (canonical authoring-standard
+capability).
+
+- RBAC-owned schema: `rbac_roles`, `rbac_role_permission`,
+  `rbac_user_role`. `user_id` references the Identity user domain only
+  through `UserQueryContract` validation — no FK to Identity tables.
+- Public contracts: `AuthorizationContract`
+  (`identityHasPermission(userId, permissionId)`) and
+  `RoleManagementContract` (role CRUD, role↔permission and user↔role
+  assignments, `userRoleIds`, `rolePermissionIds`,
+  `registeredPermissionIds`). Both resolve to implementations in
+  `Modules\Rbac\Application\Services` via `RbacServiceProvider`.
+- Permission source of truth: Foundation `PermissionRegistryContract`.
+  Only registered permission ids are assignable
+  (`UnregisteredPermissionException` otherwise); the registry is never
+  snapshotted into RBAC tables.
+- Authorization semantics v1: permissions through roles only; no
+  direct user-permission assignment, no wildcards, no hierarchy, no
+  deny rules, no tenancy/teams, no caching.
+- Phase 1 has no UI, routes, navigation, or Gate wiring.
+- `module:doctor rbac` passes all checks with Identity installed and
+  enabled on the authoring host.
+- RBAC feature tests live in `tests/Feature/Rbac/` (33 methods:
+  lifecycle/install, role CRUD, permission assignment, user-role
+  assignment, authorization checks, contract resolution, boundary).
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -188,7 +217,9 @@ Foundation v1. `module:make` adds 15 focused feature tests
 standard minimum conformance. Pre-audit: 80 tests / 146 assertions.
 Post-audit: 94 tests. With module:make: 109 tests. Identity module tests
 (42 methods) run in `modmon-identity` or a host with the module installed
-— not in Foundation suite by default.
+— not in Foundation suite by default. RBAC Phase 1 adds 33 feature tests
+in `tests/Feature/Rbac/` (148 passed / 1 skipped in the Foundation suite
+with Identity and Rbac present).
 
 ### Known Limitation
 
@@ -257,10 +288,14 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Implement platform modules using the authoring standard: RBAC,
+1.  RBAC Phase 2 (in `Modules/Rbac`, then extract to `modmon-rbac`):
+    Gate wiring, UI/routes/navigation, and any RBAC-owned admin
+    contributions. Phase 1 (core domain + persistence + public
+    integration) is complete.
+2.  Implement other platform modules using the authoring standard:
     Settings, SaaS/Tenancy, Subscription.
-2.  Implement Owner/Tenant workspace modules.
-3.  Build first business module against the proven contract and authoring
+3.  Implement Owner/Tenant workspace modules.
+4.  Build first business module against the proven contract and authoring
     standard.
-4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
     at least two real modules have been authored.

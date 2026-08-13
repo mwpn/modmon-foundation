@@ -15,10 +15,15 @@ class ModuleMakeCommandTest extends TestCase
 {
     private string $modulesPath;
 
+    /** @var string[] Directories present in Modules/ before this test ran. */
+    private array $preexistingModules = [];
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->modulesPath = base_path('Modules');
+
+        $this->preexistingModules = $this->moduleDirectories();
 
         $this->app->forgetInstance(ModuleDiscovery::class);
         $this->app->forgetInstance(ModuleRegistrarContract::class);
@@ -26,13 +31,35 @@ class ModuleMakeCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (['WaterBilling', 'Inventory', 'MeterReading', 'Rbac'] as $directory) {
+        // Remove only directories this test created. Directories that
+        // already existed when the test started (real modules such as
+        // Example, Identity, or Rbac) are never touched, so cleanup can
+        // never delete a real module.
+        foreach (array_diff($this->moduleDirectories(), $this->preexistingModules) as $directory) {
             $path = $this->modulesPath.'/'.$directory;
             if (File::isDirectory($path)) {
                 File::deleteDirectory($path);
             }
         }
         parent::tearDown();
+    }
+
+    /**
+     * @return string[] Directories directly inside Modules/
+     */
+    private function moduleDirectories(): array
+    {
+        if (! is_dir($this->modulesPath)) {
+            return [];
+        }
+
+        $directories = array_filter(
+            scandir($this->modulesPath) ?: [],
+            fn (string $item) => ! in_array($item, ['.', '..'], true)
+                && is_dir($this->modulesPath.'/'.$item),
+        );
+
+        return array_values($directories);
     }
 
     public function test_it_scaffolds_the_minimum_portable_structure(): void
@@ -119,15 +146,15 @@ class ModuleMakeCommandTest extends TestCase
     public function test_it_scaffolds_provides_requires_and_purpose_from_options(): void
     {
         $this->artisan('module:make', [
-            'name' => 'Rbac',
-            '--type' => 'platform',
-            '--purpose' => 'Role and permission management.',
-            '--provides' => 'authorization.permission',
+            'name' => 'Scheduling',
+            '--type' => 'business',
+            '--purpose' => 'Employee shift scheduling.',
+            '--provides' => 'scheduling.shift',
             '--requires' => 'identity.user,identity.authentication',
         ])->assertSuccessful();
 
         $data = json_decode(
-            File::get($this->modulesPath.'/Rbac/module.json'),
+            File::get($this->modulesPath.'/Scheduling/module.json'),
             true,
             flags: JSON_THROW_ON_ERROR,
         );
@@ -135,14 +162,14 @@ class ModuleMakeCommandTest extends TestCase
         $errors = app(ManifestValidator::class)->validate($data);
 
         $this->assertSame([], $errors);
-        $this->assertSame('platform', $data['type']);
-        $this->assertSame(['authorization.permission'], $data['provides']);
+        $this->assertSame('business', $data['type']);
+        $this->assertSame(['scheduling.shift'], $data['provides']);
         $this->assertSame(['identity.user', 'identity.authentication'], $data['requires']['capabilities']);
 
-        $readme = File::get($this->modulesPath.'/Rbac/README.md');
+        $readme = File::get($this->modulesPath.'/Scheduling/README.md');
 
-        $this->assertStringContainsString('Role and permission management.', $readme);
-        $this->assertStringContainsString('`authorization.permission`', $readme);
+        $this->assertStringContainsString('Employee shift scheduling.', $readme);
+        $this->assertStringContainsString('`scheduling.shift`', $readme);
         $this->assertStringContainsString('`identity.user`', $readme);
         $this->assertStringContainsString('`identity.authentication`', $readme);
     }
