@@ -85,26 +85,6 @@ class ModuleRouteNameLookupTest extends TestCase
         $this->assertTrue(Route::has('example.index'));
     }
 
-    public function test_multiple_modules_loaded_post_boot_remain_resolvable(): void
-    {
-        $manager = app(ModuleManager::class);
-
-        $example = $manager->install('example');
-        $this->assertTrue($example['success'], implode(' | ', $example['messages']));
-
-        $identity = $manager->install('identity');
-        $this->assertTrue($identity['success'], implode(' | ', $identity['messages']));
-
-        $this->assertTrue(Route::has('example.index'));
-        $this->assertTrue(Route::has('example.about'));
-        $this->assertTrue(Route::has('identity.login'));
-        $this->assertTrue(Route::has('identity.logout'));
-        $this->assertTrue(Route::has('identity.password.reset'));
-
-        $this->assertSame(url('/login'), route('identity.login'));
-        $this->assertSame(url('/example'), route('example.index'));
-    }
-
     public function test_re_enable_keeps_named_routes_resolvable(): void
     {
         $manager = app(ModuleManager::class);

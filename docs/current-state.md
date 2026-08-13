@@ -108,46 +108,35 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
-### Identity Module (Modules/Identity/) — v1 Phases 1–6 COMPLETE
+### External platform modules
 
-Implemented per `docs/proposals/identity-v1.md` (approved 2026-08-12)
-and ADR-0006 (Strategy D, amended runtime auth wiring). Compliance:
-`docs/reports/identity-compliance-v1.md` — **FULL COMPLIANCE** with
-Authoring Standard v1 Portable Module Definition of Done.
+Foundation ships only the **Example** reference module under
+`Modules/Example/`. Platform modules live in separate repositories and
+install via copy-from-Git (no host source edits).
 
--   `module.json` — platform type, provides `identity.user` +
-    `identity.authentication`, no required capabilities
--   `IdentityServiceProvider` — runtime auth-provider wiring
-    (`config('auth.providers.users.model')`) while enabled; respects
-    explicit host `AUTH_MODEL` override; never mutates `.env`;
-    wires auth middleware guest redirect to `identity.login` via
-    `afterResolving(HttpKernel)` (no host bootstrap edit); implements
-    `ContributesRoutes` for auth flows; registers
-    `identity:user:create`
--   `Models/User` — canonical user model extending Authenticatable
-    independently (never `App\Models\User`)
--   `Domain/Contracts/UserQueryContract` + `Domain/ReadModels/UserReadModel`
-    — read-only boundary; bound to `EloquentUserQuery` in `register()`
--   `Infrastructure/Adoption/UsersTableSchemaValidator` — strict
-    detect-and-validate schema checks before adoption
--   `Database/Migrations/2026_08_12_000001_create_identity_users_tables.php`
-    — conditional migration: create both tables (fresh host), adopt
-    compatible legacy tables unchanged, abort on incompatible schema or
-    partial table state; `sessions` is never touched; no `identity_meta`
--   Phase 4 auth flows — login/logout/password reset controllers,
-    views, routes (`identity.*`), reset notification URL targets
-    `identity.password.reset`, throttle on login submit
--   Phase 5 lifecycle polish — README finalized to Authoring Standard
-    §16; `IdentityDisableEnableTest`; architecture boundary tests
-    finalized
--   Phase 6 portability proof — clean-host copy→doctor→install→use
-    without unrelated host source edits; `IdentityPortabilityTest`;
-    compliance report published
--   Tests under `Modules/Identity/Tests/` (Unit, Feature, Architecture);
-    `Modules` testsuite in `phpunit.xml`
--   Foundation fixes (generic, not Identity-specific knowledge):
-    migration `--realpath`, route `refreshNameLookups()`, same-process
-    provider `register()` re-invoke on enable
+| Module   | Repository              | Status                          |
+| -------- | ----------------------- | ------------------------------- |
+| Identity | `mwpn/modmon-identity`  | v1.0.0 — certified portable     |
+| RBAC     | (planned)               | —                               |
+
+Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
+and ADR-0006. Compliance report and module tests live in
+[modmon-identity](https://github.com/mwpn/modmon-identity). Pointer:
+`docs/reports/identity-compliance-v1.md`.
+
+Install into a compatible host:
+
+```bash
+git clone https://github.com/mwpn/modmon-identity.git /tmp/modmon-identity
+cp -r /tmp/modmon-identity/Modules/Identity ./Modules/Identity
+php artisan module:doctor identity
+php artisan module:install identity
+```
+
+Foundation retains generic runtime fixes required by portable modules
+(migration `--realpath`, route `refreshNameLookups()`, provider
+`register()` re-invoke on enable) — no Identity-specific knowledge in
+`ModuleManager` or host bootstrap.
 
 ### Tests
 
@@ -168,13 +157,8 @@ Authoring Standard v1 Portable Module Definition of Done.
     state mutation), InstallSafety (capability collision,
     state ordering, doctor wording, migration actually runs),
     ModuleDiscoverySafety (symlink rejection, real-directory acceptance)
--   Module tests (Laravel boot / pure PHPUnit): Modules/Identity/Tests —
-    manifest validity, model behavior, UserReadModel, UserQueryContract
-    binding, fresh-table creation, compatible legacy adoption, data
-    preservation, incompatible-schema rejection, partial-table-state
-    rejection, runtime auth provider resolution, AUTH_MODEL override,
-    `.env` byte-identical, Identity boundary (no host-user model, no
-    cross-module imports)
+-   Module tests for Identity: run in a host that has installed
+    `modmon-identity` (see that repository's README).
 
 ## Environment Requirements
 
@@ -202,8 +186,9 @@ npm run build
 Foundation v1. `module:make` adds 12 focused feature tests
 (tests/Feature/Foundation/ModuleMakeCommandTest.php) for the scaffolding
 command. Pre-audit: 80 tests / 146 assertions. Post-audit: 94 tests.
-With module:make: 106 tests. With modmon-identity v1 Phases 1–3 (42
-module tests): 149 tests total (148 passed, 1 skipped, 363 assertions).
+With module:make: 106 tests. Identity module tests (42 methods) run in
+`modmon-identity` or a host with the module installed — not in Foundation
+suite by default.
 
 ### Known Limitation
 

@@ -49,7 +49,6 @@ class ArtisanCommandsTest extends TestCase
                 ['Name', 'Code', 'Version', 'Type', 'State', 'Provides', 'Requires'],
                 [
                     ['Example', 'example', '1.0.0', 'business', 'discovered', 'example.demo', '-'],
-                    ['Identity', 'identity', '1.0.0', 'platform', 'discovered', 'identity.user, identity.authentication', '-'],
                 ],
             );
     }
