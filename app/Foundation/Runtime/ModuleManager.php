@@ -16,7 +16,7 @@ use App\Foundation\SDK\Contributions\ContributesRoutes;
 use App\Foundation\SDK\DTOs\ModuleDiagnostic;
 use App\Foundation\SDK\ModuleManifest;
 use App\Foundation\SDK\ModuleState;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -258,21 +258,11 @@ class ModuleManager
 
         if (is_string($migrationsPath) && count(glob($migrationsPath . '/*.php') ?: []) > 0) {
             try {
-                $exitCode = Artisan::call('migrate', [
-                    '--path' => $migrationsPath,
-                    '--realpath' => true,
-                    '--force' => true,
-                ]);
+                $this->runModuleMigrations($migrationsPath);
             } catch (\Throwable $e) {
                 return ['success' => false, 'messages' => [
                     "Migration failed for module '{$code}': {$e->getMessage()}",
                     "Module was NOT installed.",
-                ]];
-            }
-
-            if ($exitCode !== 0) {
-                return ['success' => false, 'messages' => [
-                    "Migration failed for module '{$code}'. Module was NOT installed.",
                 ]];
             }
 
@@ -506,5 +496,28 @@ class ModuleManager
         } else {
             app()->register($provider);
         }
+    }
+
+    /**
+     * Run a module's owned migrations through Laravel's Migrator.
+     *
+     * Do not nest `Artisan::call('migrate')`. `MigrationServiceProvider`
+     * is deferred: its `migrate` command is registered via
+     * `Artisan::starting()` only after `loadDeferredProviders()`. If any
+     * enabled module already resolved the console kernel during
+     * `BootProviders` (e.g. `Kernel::registerCommand()`), the Artisan
+     * instance is created *before* those callbacks exist and `migrate`
+     * is missing for the rest of the process. The Migrator API is the
+     * same engine the command uses and does not depend on that map.
+     */
+    private function runModuleMigrations(string $migrationsPath): void
+    {
+        $migrator = app(Migrator::class);
+
+        if (! $migrator->repositoryExists()) {
+            $migrator->getRepository()->createRepository();
+        }
+
+        $migrator->run([$migrationsPath]);
     }
 }
