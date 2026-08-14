@@ -50,6 +50,21 @@ final class RbacService implements RoleManagementContract
         $role->delete();
     }
 
+    public function all(): array
+    {
+        return Role::query()->orderBy('name')->get()->all();
+    }
+
+    public function count(): int
+    {
+        return Role::count();
+    }
+
+    public function find(int $roleId): ?Role
+    {
+        return Role::find($roleId);
+    }
+
     public function assignPermissionToRole(int $roleId, string $permissionId): void
     {
         $this->assertRoleExists($roleId);
@@ -106,6 +121,17 @@ final class RbacService implements RoleManagementContract
             ->where('user_id', $userId)
             ->pluck('role_id')
             ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    public function userIdsWithRole(int $roleId): array
+    {
+        $this->assertRoleExists($roleId);
+
+        return DB::table('rbac_user_role')
+            ->where('role_id', $roleId)
+            ->orderBy('user_id')
+            ->pluck('user_id')
             ->all();
     }
 

@@ -129,6 +129,10 @@ RBAC Phase 2 (2026-08-14): permission contribution + Laravel Gate
 integration (runtime authorization wired through Laravel
 authorization; no UI/routes/CRUD).
 
+RBAC Phase 3 (2026-08-14): minimal admin surface for role management
+(module-owned routes/controllers/Blade views), navigation contribution,
+and lifecycle proof over HTTP. No new domain features.
+
 - RBAC-owned schema: `rbac_roles`, `rbac_role_permission`,
   `rbac_user_role`. `user_id` references the Identity user domain only
   through `UserQueryContract` validation — no FK to Identity tables.
@@ -159,12 +163,34 @@ authorization; no UI/routes/CRUD).
   callback is registered at most once per application lifecycle.
 - Phase 1 has no UI, routes, navigation, or Gate wiring; Phase 2 adds
   Gate wiring but still no UI/routes/navigation.
+- Phase 3 (admin surface): `Routes/web.php` under `/rbac/roles` with
+  `auth` + `can:rbac.roles.manage` middleware (the single Gate path);
+  `RoleController` (list/create/edit/delete role,
+  assign/remove permission) and `UserRoleController` (assign/remove
+  role to user) — all data access through the public
+  `RoleManagementContract`, never direct queries. User selection uses
+  only the public `UserQueryContract::findById()`; the contract has no
+  search/listing API, so assignment is by user id (documented in the
+  view; no Identity patch — contract gap none, capability respected).
+- Navigation (Phase 3): `ContributesNavigation` registers a
+  "Roles & Permissions" item (`rbac.roles`) in the Administration
+  group, with `permission: rbac.roles.manage` metadata and
+  `activePattern: rbac/roles*`. Item appears while RBAC is enabled;
+  disable removes it, re-enable restores it. The host Experience shell
+  does not yet filter items by `permission` (out of Phase 3 scope —
+  no shell edits), so the item is shown to any authenticated user; the
+  route itself remains Gate-protected.
+- Views (Phase 3): `rbac::roles.index/create/edit` using Foundation
+  Experience components (app-shell, card, button, alert, empty-state).
+- `RoleManagementContract` grew read-only admin helpers: `all()`,
+  `find()`, `count()`, `userIdsWithRole()` — no new domain semantics.
 - `module:doctor rbac` passes all checks with Identity installed and
   enabled on the authoring host.
-- RBAC feature tests live in `tests/Feature/Rbac/` (47 methods:
+- RBAC feature tests live in `tests/Feature/Rbac/` (76 methods:
   lifecycle/install, role CRUD, permission assignment, user-role
   assignment, authorization checks, contract resolution, permission
-  contribution, Gate integration, boundary).
+  contribution, Gate integration, boundary, admin HTTP, admin
+  lifecycle, admin boundary).
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -236,8 +262,9 @@ standard minimum conformance. Pre-audit: 80 tests / 146 assertions.
 Post-audit: 94 tests. With module:make: 109 tests. Identity module tests
 (42 methods) run in `modmon-identity` or a host with the module installed
 — not in Foundation suite by default. RBAC Phase 1 adds 33 feature tests
-in `tests/Feature/Rbac/`; Phase 2 adds 14 more (162 passed / 1 skipped
-in the Foundation suite with Identity and Rbac present).
+in `tests/Feature/Rbac/`; Phase 2 adds 14 more; Phase 3 adds 24 more
+(191 passed / 1 skipped in the Foundation suite with Identity and Rbac
+present).
 
 ### Known Limitation
 
@@ -306,15 +333,18 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  RBAC Phase 3 (in `Modules/Rbac`, then extract to `modmon-rbac`):
-    UI/routes/navigation for role management (admin screens using
-    `rbac.roles.manage`), and any RBAC-owned admin contributions.
-    Phase 1 (core domain + persistence + public integration) and
-    Phase 2 (permission contribution + Gate integration) are complete.
-2.  Implement other platform modules using the authoring standard:
+1.  RBAC Phase 4: extract `Modules/Rbac` to `modmon-rbac` (planned
+    repository) following the portable-module certification checklist.
+    Phase 1 (core domain + persistence + public integration), Phase 2
+    (permission contribution + Gate integration) and Phase 3 (admin
+    surface: routes/controllers/views/navigation) are complete.
+2.  Experience Kernel: make the shell honor `NavigationItem::permission`
+    so nav contributions render authorization-aware (currently all
+    enabled modules' items render; routes remain Gate-protected).
+3.  Implement other platform modules using the authoring standard:
     Settings, SaaS/Tenancy, Subscription.
-3.  Implement Owner/Tenant workspace modules.
-4.  Build first business module against the proven contract and authoring
+4.  Implement Owner/Tenant workspace modules.
+5.  Build first business module against the proven contract and authoring
     standard.
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+6.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
     at least two real modules have been authored.

@@ -75,7 +75,26 @@ registered.
 
 ## Routes
 
-*None* — declare routes via `ContributesRoutes` when needed.
+Module-owned admin surface (Phase 3), declared via `ContributesRoutes`
+and loaded only while the module is enabled:
+
+| Method | URI                          | Name                          | Purpose                |
+|--------|------------------------------|-------------------------------|------------------------|
+| GET    | `/rbac/roles`                | `rbac.roles.index`            | List roles            |
+| GET    | `/rbac/roles/create`         | `rbac.roles.create`           | Create form           |
+| POST   | `/rbac/roles`                | `rbac.roles.store`            | Create role           |
+| GET    | `/rbac/roles/{role}`         | `rbac.roles.edit`             | Edit role             |
+| PUT    | `/rbac/roles/{role}`         | `rbac.roles.update`           | Rename role           |
+| DELETE | `/rbac/roles/{role}`         | `rbac.roles.destroy`          | Delete role           |
+| POST   | `/rbac/roles/{role}/permissions` | `rbac.roles.permissions.assign`  | Assign permission |
+| DELETE | `/rbac/roles/{role}/permissions` | `rbac.roles.permissions.remove` | Remove permission  |
+| POST   | `/rbac/roles/{role}/users`   | `rbac.roles.users.assign`     | Assign role to user   |
+| DELETE | `/rbac/roles/{role}/users`   | `rbac.roles.users.remove`     | Remove role from user |
+
+All routes are protected by `auth` + `can:rbac.roles.manage` (the
+Laravel Gate path from Phase 2 — the single authorization mechanism).
+Controllers use only the public contracts; no RBAC/Identity table is
+queried directly.
 
 ## Events Published
 
@@ -95,11 +114,15 @@ registered.
   - `createRole(string $name): int`
   - `updateRole(int $roleId, string $name): void`
   - `deleteRole(int $roleId): void`
+  - `all(): array` — all roles ordered by name (admin listing)
+  - `find(int $roleId): ?Role` — single role or null
+  - `count(): int` — total roles
   - `assignPermissionToRole(int $roleId, string $permissionId): void`
   - `removePermissionFromRole(int $roleId, string $permissionId): void`
   - `assignRoleToUser(string $userId, int $roleId): void`
   - `removeRoleFromUser(string $userId, int $roleId): void`
   - `userRoleIds(string $userId): array`
+  - `userIdsWithRole(int $roleId): array` — user ids assigned to a role
   - `rolePermissionIds(int $roleId): array`
   - `registeredPermissionIds(): array`
 
@@ -163,7 +186,18 @@ preserves all rows; no data is deleted.
 
 ## Navigation Contributions
 
-*None* — this module contributes no navigation items.
+Phase 3 — the module contributes one navigation item via
+`ContributesNavigation`:
+
+| Item      | Label               | Route        | Permission            | Group        |
+|-----------|---------------------|--------------|-----------------------|--------------|
+| `rbac.roles` | Roles & Permissions | `/rbac/roles` | `rbac.roles.manage`   | Administration |
+
+The item is registered while the module is enabled and removed by the
+Foundation lifecycle on disable (re-enable restores it). The
+`permission` metadata is provided for authorization-aware shells; the
+host shell does not filter by it yet, so the link shows to any
+authenticated user while enabled — the route itself stays Gate-protected.
 
 ## Dashboard Contributions
 
@@ -171,7 +205,7 @@ preserves all rows; no data is deleted.
 
 ## Testing
 
-Phase 1–2 tests live in the host under `tests/Feature/Rbac/` (47
+Phase 1–3 tests live in the host under `tests/Feature/Rbac/` (76
 methods). Run with:
 
 ```bash
@@ -186,20 +220,20 @@ php artisan test --filter="Rbac"
 | Discovery | Covered by Foundation `module:list` |
 | Installation | Covered — `RbacLifecycleTest` |
 | Capability registration | Covered — `RbacContractResolutionTest` |
-| Routes | N/A (no routes in Phase 1–2) |
+| Routes | Covered — `RbacAdminLifecycleTest` (registered while enabled, absent before install, restored on re-enable) |
 | Migrations | Covered — `RbacLifecycleTest` |
-| Contributions | Covered — `RbacPermissionContributionTest` |
+| Contributions | Covered — `RbacPermissionContributionTest`, `RbacAdminLifecycleTest` |
 | Gate integration | Covered — `RbacGateIntegrationTest` |
-| Disable/Enable | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest` |
-| Data preservation | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest` |
-| Architecture boundary | Covered — `RbacBoundaryTest` |
-| Role CRUD | Covered — `RbacRoleCrudTest` |
-| Permission assignment | Covered — `RbacPermissionAssignmentTest` |
-| User-role assignment | Covered — `RbacUserRoleAssignmentTest` |
-| Authorization checks | Covered — `RbacAuthorizationTest` |
+| Disable/Enable | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest`, `RbacAdminLifecycleTest` |
+| Data preservation | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest`, `RbacAdminLifecycleTest` |
+| Architecture boundary | Covered — `RbacBoundaryTest`, `RbacAdminBoundaryTest` |
+| Role CRUD | Covered — `RbacRoleCrudTest`, `RbacAdminHttpTest` |
+| Permission assignment | Covered — `RbacPermissionAssignmentTest`, `RbacAdminHttpTest` |
+| User-role assignment | Covered — `RbacUserRoleAssignmentTest`, `RbacAdminHttpTest` |
+| Authorization checks | Covered — `RbacAuthorizationTest`, `RbacAdminHttpTest` (403 without `rbac.roles.manage`, guest redirect) |
 
 ## Version History
 
 | Version | Foundation | Description       |
 |---------|------------|-------------------|
-| 1.0.0   | ^1.0       | Phase 1: core domain + persistence + public integration. Phase 2: permission contribution (`rbac.roles.manage`) + Laravel Gate integration with disable/re-enable runtime semantics. |
+| 1.0.0   | ^1.0       | Phase 1: core domain + persistence + public integration. Phase 2: permission contribution (`rbac.roles.manage`) + Laravel Gate integration with disable/re-enable runtime semantics. Phase 3: module-owned admin surface (routes/controllers/Blade views for role CRUD, permission and user-role assignment) + navigation contribution, all protected by `rbac.roles.manage`. |

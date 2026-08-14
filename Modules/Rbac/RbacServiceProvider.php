@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Rbac;
 
+use App\Foundation\SDK\Contributions\ContributesNavigation;
 use App\Foundation\SDK\Contributions\ContributesPermissions;
+use App\Foundation\SDK\Contributions\ContributesRoutes;
+use App\Foundation\SDK\DTOs\NavigationItem;
 use App\Foundation\SDK\DTOs\PermissionDefinition;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -29,7 +32,10 @@ use Modules\Rbac\Domain\Contracts\RoleManagementContract;
  * the Laravel Gate integration (RuntimeAuthorization) while the module
  * is enabled.
  */
-class RbacServiceProvider extends ServiceProvider implements ContributesPermissions
+class RbacServiceProvider extends ServiceProvider implements
+    ContributesRoutes,
+    ContributesNavigation,
+    ContributesPermissions
 {
     /**
      * Prevents the Gate callback from being registered more than once
@@ -67,7 +73,15 @@ class RbacServiceProvider extends ServiceProvider implements ContributesPermissi
 
     public function boot(): void
     {
-        //
+        $this->loadViewsFrom(
+            __DIR__.'/Resources/views',
+            'rbac',
+        );
+    }
+
+    public function routeFiles(): string|array
+    {
+        return __DIR__.'/Routes/web.php';
     }
 
     public function permissionDefinitions(): array
@@ -79,6 +93,22 @@ class RbacServiceProvider extends ServiceProvider implements ContributesPermissi
                 label: 'Manage Roles',
                 group: 'RBAC',
                 description: 'Can create, update and delete RBAC roles and assignments.',
+            ),
+        ];
+    }
+
+    public function navigationItems(): array
+    {
+        return [
+            new NavigationItem(
+                id: 'rbac.roles',
+                moduleCode: 'rbac',
+                label: 'Roles & Permissions',
+                route: '/rbac/roles',
+                permission: 'rbac.roles.manage',
+                group: 'Administration',
+                order: 50,
+                activePattern: 'rbac/roles*',
             ),
         ];
     }
