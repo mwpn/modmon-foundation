@@ -194,10 +194,10 @@ Phase 3 — the module contributes one navigation item via
 | `rbac.roles` | Roles & Permissions | `/rbac/roles` | `rbac.roles.manage`   | Administration |
 
 The item is registered while the module is enabled and removed by the
-Foundation lifecycle on disable (re-enable restores it). The
-`permission` metadata is provided for authorization-aware shells; the
-host shell does not filter by it yet, so the link shows to any
-authenticated user while enabled — the route itself stays Gate-protected.
+Foundation lifecycle on disable (re-enable restores it). The Experience
+shell hides the item unless the current user is allowed
+`rbac.roles.manage` through Laravel Gate. The route remains
+Gate-protected as well.
 
 ## Dashboard Contributions
 

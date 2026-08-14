@@ -81,7 +81,14 @@ and `npm install` on target Laragon environment before first run.
 
 **Experience Kernel** (app/Foundation/Experience/)
 -   `NavigationRegistry` — in-memory, supports workspace filtering and
-    grouping
+    grouping (returns all contributed items; disable uses
+    `removeByModule`)
+-   `AppShell` honors `NavigationItem::permission` at render time via
+    Laravel Gate (`Gate::forUser($user)->allows()`). Items without
+    `permission` stay visible. Restricted items are hidden for guests
+    and unauthorized users. No new contract; no RBAC coupling.
+    Regression:
+    `tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`.
 -   `WorkspaceRegistry` — in-memory, supports slots and workspace
     extraction
 -   `PermissionRegistry` — in-memory, grouped-by-module
@@ -176,10 +183,9 @@ and lifecycle proof over HTTP. No new domain features.
   "Roles & Permissions" item (`rbac.roles`) in the Administration
   group, with `permission: rbac.roles.manage` metadata and
   `activePattern: rbac/roles*`. Item appears while RBAC is enabled;
-  disable removes it, re-enable restores it. The host Experience shell
-  does not yet filter items by `permission` (out of Phase 3 scope —
-  no shell edits), so the item is shown to any authenticated user; the
-  route itself remains Gate-protected.
+  disable removes it, re-enable restores it. The Experience shell
+  hides items whose `permission` the current user cannot pass via
+  Laravel Gate (guest and unauthorized users do not see it).
 - Views (Phase 3): `rbac::roles.index/create/edit` using Foundation
   Experience components (app-shell, card, button, alert, empty-state).
 - `RoleManagementContract` grew read-only admin helpers: `all()`,
@@ -338,13 +344,10 @@ never written by the module (ADR-0006 amendment 2026-08-12).
     Phase 1 (core domain + persistence + public integration), Phase 2
     (permission contribution + Gate integration) and Phase 3 (admin
     surface: routes/controllers/views/navigation) are complete.
-2.  Experience Kernel: make the shell honor `NavigationItem::permission`
-    so nav contributions render authorization-aware (currently all
-    enabled modules' items render; routes remain Gate-protected).
-3.  Implement other platform modules using the authoring standard:
+2.  Implement other platform modules using the authoring standard:
     Settings, SaaS/Tenancy, Subscription.
-4.  Implement Owner/Tenant workspace modules.
-5.  Build first business module against the proven contract and authoring
+3.  Implement Owner/Tenant workspace modules.
+4.  Build first business module against the proven contract and authoring
     standard.
-6.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
     at least two real modules have been authored.
