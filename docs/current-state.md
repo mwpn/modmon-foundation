@@ -124,7 +124,7 @@ install via copy-from-Git (no host source edits).
 | Module   | Repository              | Status                          |
 | -------- | ----------------------- | ------------------------------- |
 | Identity | `mwpn/modmon-identity`  | v1.0.0 — certified portable     |
-| RBAC     | `mwpn/modmon-rbac` (planned extract) | Phase 1 core implemented in this host (`Modules/Rbac`) — not Foundation-shipped |
+| RBAC     | `mwpn/modmon-rbac` (extract pending GitHub proof) | Phase 5 compliance green on this host (`Modules/Rbac`) — not Foundation-shipped |
 
 RBAC Phase 1 (2026-08-13): core domain + persistence + public
 integration implemented per `docs/module-authoring-standard.md`.
@@ -192,11 +192,17 @@ and lifecycle proof over HTTP. No new domain features.
   `find()`, `count()`, `userIdsWithRole()` — no new domain semantics.
 - `module:doctor rbac` passes all checks with Identity installed and
   enabled on the authoring host.
-- RBAC feature tests live in `tests/Feature/Rbac/` (76 methods:
+- RBAC feature tests live in `tests/Feature/Rbac/` (85 methods:
   lifecycle/install, role CRUD, permission assignment, user-role
   assignment, authorization checks, contract resolution, permission
   contribution, Gate integration, boundary, admin HTTP, admin
-  lifecycle, admin boundary).
+  lifecycle, admin boundary, Phase 5 compliance).
+- Phase 5 (2026-08-14): lifecycle/compliance hardening — discovered
+  state, `module:doctor`/`module:install` fail clearly without
+  `identity.user`, pass after Identity, explicit install owns
+  migrations, disable/re-enable preserves data and restores
+  route/nav/permission/Gate. Report:
+  `docs/reports/rbac-compliance-v1.md`.
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -339,11 +345,10 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  RBAC Phase 4: extract `Modules/Rbac` to `modmon-rbac` (planned
-    repository) following the portable-module certification checklist.
-    Phase 1 (core domain + persistence + public integration), Phase 2
-    (permission contribution + Gate integration) and Phase 3 (admin
-    surface: routes/controllers/views/navigation) are complete.
+1.  RBAC extract: publish `Modules/Rbac` to `mwpn/modmon-rbac` and
+    repeat copy → `module:doctor` → `module:install` from Git on a
+    host that already has Identity. Phase 5 compliance is green on
+    this authoring host (`docs/reports/rbac-compliance-v1.md`).
 2.  Implement other platform modules using the authoring standard:
     Settings, SaaS/Tenancy, Subscription.
 3.  Implement Owner/Tenant workspace modules.

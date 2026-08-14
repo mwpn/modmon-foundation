@@ -19,6 +19,8 @@ use Tests\Feature\RbacTestCase;
  */
 class RbacLifecycleTest extends RbacTestCase
 {
+    protected bool $preMigrateRbac = false;
+
     public function test_install_creates_owned_tables_and_registers_capability(): void
     {
         $this->artisan('module:install', ['code' => 'rbac'])->assertSuccessful();

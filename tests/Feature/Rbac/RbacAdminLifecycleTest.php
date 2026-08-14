@@ -33,6 +33,8 @@ use Tests\Feature\RbacTestCase;
  */
 class RbacAdminLifecycleTest extends RbacTestCase
 {
+    protected bool $preMigrateRbac = false;
+
     public function test_routes_not_registered_before_install(): void
     {
         $this->assertFalse(Route::has('rbac.roles.index'));

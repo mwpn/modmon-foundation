@@ -205,7 +205,7 @@ Gate-protected as well.
 
 ## Testing
 
-Phase 1–3 tests live in the host under `tests/Feature/Rbac/` (76
+Phase 1–5 tests live in the host under `tests/Feature/Rbac/` (85
 methods). Run with:
 
 ```bash
@@ -226,14 +226,22 @@ php artisan test --filter="Rbac"
 | Gate integration | Covered — `RbacGateIntegrationTest` |
 | Disable/Enable | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest`, `RbacAdminLifecycleTest` |
 | Data preservation | Covered — `RbacLifecycleTest`, `RbacGateIntegrationTest`, `RbacAdminLifecycleTest` |
-| Architecture boundary | Covered — `RbacBoundaryTest`, `RbacAdminBoundaryTest` |
+| Architecture boundary | Covered — `RbacBoundaryTest`, `RbacAdminBoundaryTest`, `RbacComplianceTest` |
 | Role CRUD | Covered — `RbacRoleCrudTest`, `RbacAdminHttpTest` |
 | Permission assignment | Covered — `RbacPermissionAssignmentTest`, `RbacAdminHttpTest` |
 | User-role assignment | Covered — `RbacUserRoleAssignmentTest`, `RbacAdminHttpTest` |
 | Authorization checks | Covered — `RbacAuthorizationTest`, `RbacAdminHttpTest` (403 without `rbac.roles.manage`, guest redirect) |
+| Portability / doctor / missing Identity | Covered — `RbacComplianceTest` (discovered state, doctor fail/pass, explicit install, disable/re-enable, no host surgery) |
+
+## Certification
+
+See `docs/reports/rbac-compliance-v1.md` (authoring host). Checklist
+section 14: manifest, lifecycle, boundaries, documentation, and host
+tests are **PASS**. GitHub copy-install proof is the extract to
+`mwpn/modmon-rbac`.
 
 ## Version History
 
 | Version | Foundation | Description       |
 |---------|------------|-------------------|
-| 1.0.0   | ^1.0       | Phase 1: core domain + persistence + public integration. Phase 2: permission contribution (`rbac.roles.manage`) + Laravel Gate integration with disable/re-enable runtime semantics. Phase 3: module-owned admin surface (routes/controllers/Blade views for role CRUD, permission and user-role assignment) + navigation contribution, all protected by `rbac.roles.manage`. |
+| 1.0.0   | ^1.0       | Phase 1: core domain + persistence + public integration. Phase 2: permission contribution (`rbac.roles.manage`) + Laravel Gate integration with disable/re-enable runtime semantics. Phase 3: module-owned admin surface (routes/controllers/Blade views for role CRUD, permission and user-role assignment) + navigation contribution, all protected by `rbac.roles.manage`. Phase 5: lifecycle/compliance hardening (doctor before/after Identity, explicit install, owned migrations, disable/re-enable proof). |

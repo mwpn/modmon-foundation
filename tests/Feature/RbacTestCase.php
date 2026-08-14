@@ -25,6 +25,20 @@ abstract class RbacTestCase extends BaseTestCase
 {
     protected FakeUserQuery $userQuery;
 
+    /**
+     * Install Identity through the Foundation lifecycle so `identity.user`
+     * is available. Compliance tests that prove the missing-dependency
+     * failure path set this to false.
+     */
+    protected bool $installIdentity = true;
+
+    /**
+     * Pre-run RBAC migrations outside `module:install`. Lifecycle and
+     * compliance tests set this to false so install itself is what
+     * creates the owned tables.
+     */
+    protected bool $preMigrateRbac = true;
+
     private string $modulesJsonPath;
 
     protected function setUp(): void
@@ -50,11 +64,13 @@ abstract class RbacTestCase extends BaseTestCase
         $this->userQuery = new FakeUserQuery;
         $this->userQuery->seed(1);
 
-        // Phase 1 prerequisite: Identity must be available on the host as
-        // a portable module, installed through the Foundation lifecycle,
-        // so `identity.user` is registered before RBAC installs. Without
-        // this the capability check in ModuleManager::install fails.
-        $this->artisan('module:install', ['code' => 'identity'])->assertSuccessful();
+        if ($this->installIdentity) {
+            // Phase 1 prerequisite: Identity must be available on the host as
+            // a portable module, installed through the Foundation lifecycle,
+            // so `identity.user` is registered before RBAC installs. Without
+            // this the capability check in ModuleManager::install fails.
+            $this->artisan('module:install', ['code' => 'identity'])->assertSuccessful();
+        }
 
         $this->app->instance(UserQueryContract::class, $this->userQuery);
         $this->app->instance(
@@ -71,14 +87,16 @@ abstract class RbacTestCase extends BaseTestCase
 
         $this->registerFixturePermission('rbac-test.permission');
 
-        // --realpath is required on Windows: without it Laravel prepends
-        // basePath() to the already-absolute path, doubling it and
-        // producing "Nothing to migrate" (see ModuleManager::install).
-        $this->artisan('migrate', [
-            '--path' => realpath(base_path('Modules/Rbac/Database/Migrations')),
-            '--realpath' => true,
-            '--force' => true,
-        ])->assertSuccessful();
+        if ($this->preMigrateRbac) {
+            // --realpath is required on Windows: without it Laravel prepends
+            // basePath() to the already-absolute path, doubling it and
+            // producing "Nothing to migrate" (see ModuleManager::install).
+            $this->artisan('migrate', [
+                '--path' => realpath(base_path('Modules/Rbac/Database/Migrations')),
+                '--realpath' => true,
+                '--force' => true,
+            ])->assertSuccessful();
+        }
     }
 
     protected function tearDown(): void
