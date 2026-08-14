@@ -43,20 +43,12 @@ class ArtisanCommandsTest extends TestCase
 
     public function test_module_list_command(): void
     {
-        // Foundation tests must not depend on externally installed modules
-        // (e.g. Identity from mwpn/modmon-identity). Assert only that the
-        // table renders and the modules actually owned by this repository
-        // (Example reference, Rbac) are listed.
-        //
-        // Each expectsOutputToContain() must match a distinct output chunk:
-        // Mockery evaluates expectations in order, so the first matching
-        // expectation consumes its chunk and blocks later expectations from
-        // seeing it. 'Example' matches the Example row; the Rbac row is the
-        // only chunk containing 'authorization.permission'.
+        // Foundation tests must not depend on externally installed
+        // modules (Identity, RBAC). Assert only that the table renders
+        // and the module owned by this repository (Example) is listed.
         $this->artisan('module:list')
             ->assertSuccessful()
-            ->expectsOutputToContain('Example')
-            ->expectsOutputToContain('authorization.permission');
+            ->expectsOutputToContain('Example');
     }
 
     public function test_module_doctor_command(): void

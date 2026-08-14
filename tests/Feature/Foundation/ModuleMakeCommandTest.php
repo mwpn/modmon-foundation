@@ -33,8 +33,8 @@ class ModuleMakeCommandTest extends TestCase
     {
         // Remove only directories this test created. Directories that
         // already existed when the test started (real modules such as
-        // Example, Identity, or Rbac) are never touched, so cleanup can
-        // never delete a real module.
+        // Example, or locally copied Identity/RBAC) are never touched, so
+        // cleanup can never delete a real module.
         foreach (array_diff($this->moduleDirectories(), $this->preexistingModules) as $directory) {
             $path = $this->modulesPath.'/'.$directory;
             if (File::isDirectory($path)) {

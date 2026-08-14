@@ -121,107 +121,40 @@ Foundation ships only the **Example** reference module under
 `Modules/Example/`. Platform modules live in separate repositories and
 install via copy-from-Git (no host source edits).
 
-| Module   | Repository              | Status                          |
-| -------- | ----------------------- | ------------------------------- |
-| Identity | `mwpn/modmon-identity`  | v1.0.0 — certified portable     |
-| RBAC     | `mwpn/modmon-rbac` (extract pending GitHub proof) | Phase 5 compliance green on this host (`Modules/Rbac`) — not Foundation-shipped |
-
-RBAC Phase 1 (2026-08-13): core domain + persistence + public
-integration implemented per `docs/module-authoring-standard.md`.
-`requires`: `identity.user` (canonical Identity capability).
-`provides`: `authorization.permission` (canonical authoring-standard
-capability).
-
-RBAC Phase 2 (2026-08-14): permission contribution + Laravel Gate
-integration (runtime authorization wired through Laravel
-authorization; no UI/routes/CRUD).
-
-RBAC Phase 3 (2026-08-14): minimal admin surface for role management
-(module-owned routes/controllers/Blade views), navigation contribution,
-and lifecycle proof over HTTP. No new domain features.
-
-- RBAC-owned schema: `rbac_roles`, `rbac_role_permission`,
-  `rbac_user_role`. `user_id` references the Identity user domain only
-  through `UserQueryContract` validation — no FK to Identity tables.
-- Public contracts: `AuthorizationContract`
-  (`identityHasPermission(userId, permissionId)`) and
-  `RoleManagementContract` (role CRUD, role↔permission and user↔role
-  assignments, `userRoleIds`, `rolePermissionIds`,
-  `registeredPermissionIds`). Both resolve to implementations in
-  `Modules\Rbac\Application\Services` via `RbacServiceProvider`.
-- Permission source of truth: Foundation `PermissionRegistryContract`.
-  Only registered permission ids are assignable
-  (`UnregisteredPermissionException` otherwise); the registry is never
-  snapshotted into RBAC tables.
-- Authorization semantics v1: permissions through roles only; no
-  direct user-permission assignment, no wildcards, no hierarchy, no
-  deny rules, no tenancy/teams, no caching.
-- Permission contribution (Phase 2): the module contributes its own
-  permission `rbac.roles.manage` via the canonical
-  `ContributesPermissions` mechanism.
-- Gate integration (Phase 2): `RuntimeAuthorization` registers a
-  single `Gate::before()` callback while the module is enabled; it
-  answers only for permission ids currently contributed by `rbac`
-  (live `PermissionRegistry` lookup — no snapshot) and delegates to
-  `AuthorizationContract`. `$user->can(...)` / `Gate::allows(...)`
-  work without importing RBAC internals. Disable removes the
-  contribution from the registry (callback becomes inert; a fresh
-  process never registers it), re-enable restores behavior; the
-  callback is registered at most once per application lifecycle.
-- Phase 1 has no UI, routes, navigation, or Gate wiring; Phase 2 adds
-  Gate wiring but still no UI/routes/navigation.
-- Phase 3 (admin surface): `Routes/web.php` under `/rbac/roles` with
-  `auth` + `can:rbac.roles.manage` middleware (the single Gate path);
-  `RoleController` (list/create/edit/delete role,
-  assign/remove permission) and `UserRoleController` (assign/remove
-  role to user) — all data access through the public
-  `RoleManagementContract`, never direct queries. User selection uses
-  only the public `UserQueryContract::findById()`; the contract has no
-  search/listing API, so assignment is by user id (documented in the
-  view; no Identity patch — contract gap none, capability respected).
-- Navigation (Phase 3): `ContributesNavigation` registers a
-  "Roles & Permissions" item (`rbac.roles`) in the Administration
-  group, with `permission: rbac.roles.manage` metadata and
-  `activePattern: rbac/roles*`. Item appears while RBAC is enabled;
-  disable removes it, re-enable restores it. The Experience shell
-  hides items whose `permission` the current user cannot pass via
-  Laravel Gate (guest and unauthorized users do not see it).
-- Views (Phase 3): `rbac::roles.index/create/edit` using Foundation
-  Experience components (app-shell, card, button, alert, empty-state).
-- `RoleManagementContract` grew read-only admin helpers: `all()`,
-  `find()`, `count()`, `userIdsWithRole()` — no new domain semantics.
-- `module:doctor rbac` passes all checks with Identity installed and
-  enabled on the authoring host.
-- RBAC feature tests live in `tests/Feature/Rbac/` (85 methods:
-  lifecycle/install, role CRUD, permission assignment, user-role
-  assignment, authorization checks, contract resolution, permission
-  contribution, Gate integration, boundary, admin HTTP, admin
-  lifecycle, admin boundary, Phase 5 compliance).
-- Phase 5 (2026-08-14): lifecycle/compliance hardening — discovered
-  state, `module:doctor`/`module:install` fail clearly without
-  `identity.user`, pass after Identity, explicit install owns
-  migrations, disable/re-enable preserves data and restores
-  route/nav/permission/Gate. Report:
-  `docs/reports/rbac-compliance-v1.md`.
+| Module   | Repository             | Status                      |
+| -------- | ---------------------- | --------------------------- |
+| Identity | `mwpn/modmon-identity` | v1.0.0 — certified portable |
+| RBAC     | `mwpn/modmon-rbac`     | v1.0.0 — certified portable |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
 [modmon-identity](https://github.com/mwpn/modmon-identity). Pointer:
 `docs/reports/identity-compliance-v1.md`.
 
-Install into a compatible host:
+RBAC v1 (Phases 1–3 + Phase 5 compliance) lives in
+[modmon-rbac](https://github.com/mwpn/modmon-rbac). Pointer:
+`docs/reports/rbac-compliance-v1.md`. Requires Identity
+(`identity.user`). Foundation does not ship `Modules/Rbac`.
+
+Install Identity, then RBAC:
 
 ```bash
 git clone https://github.com/mwpn/modmon-identity.git /tmp/modmon-identity
 cp -r /tmp/modmon-identity/Modules/Identity ./Modules/Identity
 php artisan module:doctor identity
 php artisan module:install identity
+
+git clone https://github.com/mwpn/modmon-rbac.git /tmp/modmon-rbac
+cp -r /tmp/modmon-rbac/Modules/Rbac ./Modules/Rbac
+php artisan module:doctor rbac
+php artisan module:install rbac
 ```
 
-Foundation retains generic runtime fixes required by portable modules
-(migration `--realpath`, route `refreshNameLookups()`, provider
-`register()` re-invoke on enable) — no Identity-specific knowledge in
-`ModuleManager` or host bootstrap.
+Foundation retains generic runtime and Experience fixes required by
+portable modules (migration `--realpath`, route `refreshNameLookups()`,
+provider `register()` re-invoke on enable, `AppShell` honoring
+`NavigationItem::permission` via Laravel Gate) — no Identity- or
+RBAC-specific knowledge in `ModuleManager` or host bootstrap.
 
 ### Tests
 
@@ -242,8 +175,9 @@ Foundation retains generic runtime fixes required by portable modules
     state mutation), InstallSafety (capability collision,
     state ordering, doctor wording, migration actually runs),
     ModuleDiscoverySafety (symlink rejection, real-directory acceptance)
--   Module tests for Identity: run in a host that has installed
-    `modmon-identity` (see that repository's README).
+-   Module tests for Identity and RBAC: run in a host that has
+    installed `modmon-identity` / `modmon-rbac` (see those
+    repositories). They are not part of the Foundation suite.
 
 ## Environment Requirements
 
@@ -271,12 +205,11 @@ npm run build
 Foundation v1. `module:make` adds 15 focused feature tests
 (`tests/Feature/Foundation/ModuleMakeCommandTest.php`) including authoring
 standard minimum conformance. Pre-audit: 80 tests / 146 assertions.
-Post-audit: 94 tests. With module:make: 109 tests. Identity module tests
-(42 methods) run in `modmon-identity` or a host with the module installed
-— not in Foundation suite by default. RBAC Phase 1 adds 33 feature tests
-in `tests/Feature/Rbac/`; Phase 2 adds 14 more; Phase 3 adds 24 more
-(191 passed / 1 skipped in the Foundation suite with Identity and Rbac
-present).
+Post-audit: 94 tests. With module:make: 109 tests. Identity and RBAC
+module tests run in `modmon-identity` / `modmon-rbac` (or a host with
+those modules copied in) — not in the Foundation suite. Experience
+navigation permission filtering is covered by
+`tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`.
 
 ### Known Limitation
 
@@ -345,14 +278,10 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  RBAC extract: publish `Modules/Rbac` to `mwpn/modmon-rbac` and
-    repeat copy → `module:doctor` → `module:install` from Git on a
-    host that already has Identity. Phase 5 compliance is green on
-    this authoring host (`docs/reports/rbac-compliance-v1.md`).
-2.  Implement other platform modules using the authoring standard:
+1.  Implement other platform modules using the authoring standard:
     Settings, SaaS/Tenancy, Subscription.
-3.  Implement Owner/Tenant workspace modules.
-4.  Build first business module against the proven contract and authoring
+2.  Implement Owner/Tenant workspace modules.
+3.  Build first business module against the proven contract and authoring
     standard.
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
     at least two real modules have been authored.
