@@ -7,8 +7,13 @@ and `npm install` on target Laragon environment before first run.
 
 ### Audit Fixes Applied
 
-1.  **Migration return code checked** — `ModuleManager::install()` now
-    aborts if `Artisan::call('migrate')` returns non-zero.
+1.  **Migration execution** — `ModuleManager::install()` runs module
+    migrations via the `Migrator` API directly instead of nested
+    `Artisan::call('migrate')`. Nested Artisan breaks when a module
+    resolves the Console Kernel early (deferred providers like
+    `MigrationServiceProvider` never load, so `migrate` is missing from
+    the stale Artisan instance). Regression:
+    `tests/Feature/Foundation/ModuleInstallAfterConsoleKernelResolvedTest.php`.
 2.  **Install state ordering** — state persisted to disk before in-memory
     capability registration to prevent inconsistency on persist failure.
 3.  **Capability collision detection** — `install()` and `enable()` reject
@@ -158,6 +163,26 @@ route `refreshNameLookups()`, provider `register()` re-invoke on enable,
 no Identity- or RBAC-specific knowledge in `ModuleManager` or host
 bootstrap.
 
+### Portability proof (final, 2026-08-15)
+
+Fresh GitHub-only proof on a new host: clone `modmon-foundation` (main)
++ copy `Modules/Identity` from `mwpn/modmon-identity` + `Modules/Rbac`
+from `mwpn/modmon-rbac`. SQLite database, no source edits anywhere.
+
+| Step | Result |
+| ---- | ------ |
+| `module:doctor rbac` before Identity | FAIL — `Missing capabilities: identity.user.` |
+| `module:install identity` | PASS — migrations applied, installed+enabled |
+| `module:doctor rbac` after Identity | PASS — all checks passed |
+| `module:install rbac` | PASS — migrations applied, installed+enabled (Migrator fix) |
+| `module:disable rbac` | PASS — data preserved |
+| `module:enable rbac` | PASS |
+| Data/contributions restored | PASS — `rbac_*` tables intact; routes 10, `rbac.roles.manage`, nav 1, capability `authorization.permission` back after enable |
+
+This closes the `modmon-rbac` v1 portable certification. The
+`migrate`-missing bug was a Foundation lifecycle defect (fixed above);
+`modmon-rbac` needed no patch or re-release.
+
 ### Tests
 
 -   Architecture tests (pure PHPUnit, no Laravel boot):
@@ -176,7 +201,11 @@ bootstrap.
     rejection, duplicate code/directory/provider rejection, no runtime
     state mutation), InstallSafety (capability collision,
     state ordering, doctor wording, migration actually runs),
-    ModuleDiscoverySafety (symlink rejection, real-directory acceptance)
+    ModuleDiscoverySafety (symlink rejection, real-directory acceptance),
+    ModuleInstallAfterConsoleKernelResolved (install runs module
+    migrations via Migrator even after a module resolves the Console
+    Kernel early; fails closed if a migration fails),
+    NavigationPermissionVisibility (AppShell Gate filtering)
 -   Module tests for Identity and RBAC: run in a host that has
     installed `modmon-identity` / `modmon-rbac` (see those
     repositories). They are not part of the Foundation suite.
@@ -203,15 +232,14 @@ npm run build
 
 ## Test Summary
 
-94 test methods across 3 suites (Architecture, Feature, Unit) at
-Foundation v1. `module:make` adds 15 focused feature tests
-(`tests/Feature/Foundation/ModuleMakeCommandTest.php`) including authoring
-standard minimum conformance. Pre-audit: 80 tests / 146 assertions.
-Post-audit: 94 tests. With module:make: 109 tests. Identity and RBAC
-module tests run in `modmon-identity` / `modmon-rbac` (or a host with
-those modules copied in) — not in the Foundation suite. Experience
-navigation permission filtering is covered by
-`tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`.
+109 tests at Foundation v1 with `module:make` (post-audit), now 125
+tests / 326 assertions including the Migrator install regression
+(`tests/Feature/Foundation/ModuleInstallAfterConsoleKernelResolvedTest.php`)
+and Experience navigation permission filtering
+(`tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`).
+Identity and RBAC module tests run in `modmon-identity` /
+`modmon-rbac` (or a host with those modules copied in) — not in the
+Foundation suite.
 
 ### Known Limitation
 
