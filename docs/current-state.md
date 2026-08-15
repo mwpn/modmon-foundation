@@ -151,10 +151,12 @@ php artisan module:install rbac
 ```
 
 Foundation retains generic runtime and Experience fixes required by
-portable modules (migration `--realpath`, route `refreshNameLookups()`,
-provider `register()` re-invoke on enable, `AppShell` honoring
-`NavigationItem::permission` via Laravel Gate) — no Identity- or
-RBAC-specific knowledge in `ModuleManager` or host bootstrap.
+portable modules (migration `--realpath` path handling, module install
+via the Migrator API rather than nested `Artisan::call('migrate')`,
+route `refreshNameLookups()`, provider `register()` re-invoke on enable,
+`AppShell` honoring `NavigationItem::permission` via Laravel Gate) —
+no Identity- or RBAC-specific knowledge in `ModuleManager` or host
+bootstrap.
 
 ### Tests
 
