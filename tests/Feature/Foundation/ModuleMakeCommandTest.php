@@ -177,12 +177,12 @@ class ModuleMakeCommandTest extends TestCase
     public function test_it_rejects_invalid_capability_identifiers(): void
     {
         $this->artisan('module:make', [
-            'name' => 'Inventory',
+            'name' => 'MakeReject',
             '--provides' => 'INVALID_CAPABILITY',
         ])->assertFailed()
             ->expectsOutputToContain('Invalid capability identifier');
 
-        $this->assertFileDoesNotExist($this->modulesPath.'/Inventory');
+        $this->assertFileDoesNotExist($this->modulesPath.'/MakeReject');
     }
 
     public function test_scaffolded_module_conforms_to_authoring_standard_minimum(): void
@@ -246,40 +246,41 @@ class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_an_invalid_module_name(): void
     {
-        $this->artisan('module:make', ['name' => 'inventory'])
+        $this->artisan('module:make', ['name' => 'makereject'])
             ->assertFailed()
             ->expectsOutputToContain('Invalid module name');
 
-        $this->assertFileDoesNotExist($this->modulesPath.'/Inventory');
+        $this->assertFileDoesNotExist($this->modulesPath.'/MakeReject');
+        $this->assertFileDoesNotExist($this->modulesPath.'/makereject');
     }
 
     public function test_it_rejects_an_invalid_module_code(): void
     {
-        $this->artisan('module:make', ['name' => 'Inventory', '--code' => 'INVALID_CODE'])
+        $this->artisan('module:make', ['name' => 'MakeReject', '--code' => 'INVALID_CODE'])
             ->assertFailed()
             ->expectsOutputToContain('Invalid module code');
 
-        $this->assertFileDoesNotExist($this->modulesPath.'/Inventory');
+        $this->assertFileDoesNotExist($this->modulesPath.'/MakeReject');
     }
 
     public function test_it_rejects_an_invalid_module_type(): void
     {
-        $this->artisan('module:make', ['name' => 'Inventory', '--type' => 'invalid'])
+        $this->artisan('module:make', ['name' => 'MakeReject', '--type' => 'invalid'])
             ->assertFailed()
             ->expectsOutputToContain('Invalid module type');
 
-        $this->assertFileDoesNotExist($this->modulesPath.'/Inventory');
+        $this->assertFileDoesNotExist($this->modulesPath.'/MakeReject');
     }
 
     public function test_it_rejects_a_duplicate_module_directory(): void
     {
-        File::makeDirectory($this->modulesPath.'/Inventory', 0755, true);
+        File::makeDirectory($this->modulesPath.'/MakeReject', 0755, true);
 
-        $this->artisan('module:make', ['name' => 'Inventory'])
+        $this->artisan('module:make', ['name' => 'MakeReject'])
             ->assertFailed()
             ->expectsOutputToContain('already exists');
 
-        $this->assertFileDoesNotExist($this->modulesPath.'/Inventory/module.json');
+        $this->assertFileDoesNotExist($this->modulesPath.'/MakeReject/module.json');
     }
 
     public function test_it_rejects_a_duplicate_module_code(): void
@@ -300,12 +301,12 @@ class ModuleMakeCommandTest extends TestCase
 
     public function test_it_rejects_a_duplicate_provider_class(): void
     {
-        File::makeDirectory($this->modulesPath.'/Inventory', 0755, true);
+        File::makeDirectory($this->modulesPath.'/MakeReject', 0755, true);
         File::put(
-            $this->modulesPath.'/Inventory/module.json',
-            '{"schema":1,"name":"Inventory","code":"inventory","version":"1.0.0","type":"business","provider":"Modules\\\\WaterBilling\\\\WaterBillingServiceProvider"}',
+            $this->modulesPath.'/MakeReject/module.json',
+            '{"schema":1,"name":"MakeReject","code":"make-reject","version":"1.0.0","type":"business","provider":"Modules\\\\WaterBilling\\\\WaterBillingServiceProvider"}',
         );
-        File::put($this->modulesPath.'/Inventory/InventoryServiceProvider.php', '<?php');
+        File::put($this->modulesPath.'/MakeReject/MakeRejectServiceProvider.php', '<?php');
 
         $this->artisan('module:make', ['name' => 'WaterBilling'])
             ->assertFailed()
