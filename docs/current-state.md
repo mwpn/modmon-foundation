@@ -120,6 +120,18 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
+### Inventory Module (authoring — Phase 1)
+
+First real portable **business** module under sufficiency proof.
+Provides `inventory.stock` (`StockContract`), owns `inventory_items` /
+`inventory_stock_movements`, admin HTTP surface, permissions, nav, and
+low-stock dashboard widget. Empty `requires` (no Identity/RBAC/Settings).
+Phase 1 does not consume `settings.runtime`. Business invariants hardened:
+atomic adjust (transaction + `lockForUpdate`), immutable SKU, deactivate
+(not hard-delete) to preserve movements, and documented composition
+security limitation (permission contribution ≠ HTTP middleware). See
+`Modules/Inventory/README.md`.
+
 ### External platform modules
 
 Foundation ships only the **Example** reference module under
@@ -340,13 +352,13 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Inventory Phase 2 — portability/compliance certification (then
+    extract to `modmon-inventory` when ready).
+2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-2.  Implement other platform modules using the authoring standard:
+3.  Implement other platform modules using the authoring standard:
     SaaS/Tenancy, Subscription.
-3.  Implement Owner/Tenant workspace modules.
-4.  Build first business module against the proven contract and authoring
-    standard.
+4.  Implement Owner/Tenant workspace modules.
 5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
-    at least one more authored module.
+    Inventory certifies.
