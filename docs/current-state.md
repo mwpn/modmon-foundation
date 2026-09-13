@@ -126,10 +126,11 @@ Foundation ships only the **Example** reference module under
 `Modules/Example/`. Platform modules live in separate repositories and
 install via copy-from-Git (no host source edits).
 
-| Module   | Repository             | Status                      |
-| -------- | ---------------------- | --------------------------- |
-| Identity | `mwpn/modmon-identity` | v1.0.0 — certified portable |
-| RBAC     | `mwpn/modmon-rbac`     | v1.0.0 — certified portable |
+| Module   | Repository             | Status                                      |
+| -------- | ---------------------- | ------------------------------------------- |
+| Identity | `mwpn/modmon-identity` | v1.0.0 — certified portable                 |
+| RBAC     | `mwpn/modmon-rbac`     | v1.0.0 — certified portable                 |
+| Settings | `modmon-settings` (TBD)| Phase 1 store+contract — authoring on this host |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -140,6 +141,18 @@ RBAC v1 (Phases 1–3 + Phase 5 compliance) lives in
 [modmon-rbac](https://github.com/mwpn/modmon-rbac). Pointer:
 `docs/reports/rbac-compliance-v1.md`. Requires Identity
 (`identity.user`). Foundation does not ship `Modules/Rbac`.
+
+Settings Phase 1 (2026-09-13): `settings_entries` migration,
+`RuntimeSettingsContract` + `DatabaseRuntimeSettings`, provider binding,
+lifecycle/contract/boundary tests (20). No admin UI, no Foundation
+patch, no Identity/RBAC dependency. Gap `ContributesSettings` remains
+reported-only. See `Modules/Settings/README.md`.
+
+Settings Phase 0 (2026-09-13): scaffolded via `module:make Settings`
+(`provides: settings.runtime`, empty `requires`). Purpose, ownership,
+and Foundation gap (`ContributesSettings` absent — not patched) locked
+in `Modules/Settings/README.md`. Foundation remains stable; Settings is
+not Foundation-shipped.
 
 Install Identity, then RBAC:
 
@@ -308,10 +321,13 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Implement other platform modules using the authoring standard:
-    Settings, SaaS/Tenancy, Subscription.
-2.  Implement Owner/Tenant workspace modules.
-3.  Build first business module against the proven contract and authoring
+1.  Settings Phase 2 candidates — optional admin UI only after Phase 1
+    store is stable; still no Foundation `ContributesSettings` unless
+    Architecture Change Protocol authorizes it.
+2.  Implement other platform modules using the authoring standard:
+    SaaS/Tenancy, Subscription.
+3.  Implement Owner/Tenant workspace modules.
+4.  Build first business module against the proven contract and authoring
     standard.
-4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
-    at least two real modules have been authored.
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
+    Settings and at least one more authored module.
