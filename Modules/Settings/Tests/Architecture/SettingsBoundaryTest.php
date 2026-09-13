@@ -14,17 +14,20 @@ use SplFileInfo;
  */
 class SettingsBoundaryTest extends TestCase
 {
-    public function test_settings_sources_do_not_import_identity_or_rbac(): void
+    public function test_settings_sources_do_not_import_foundation_runtime_or_other_modules(): void
     {
         $root = dirname(__DIR__, 2);
         $forbidden = [
             'Modules\\Identity',
             'Modules\\Rbac',
+            'Modules\\Example',
             'identity.user',
             'authorization.permission',
             'UserQueryContract',
             'AuthorizationContract',
             'RoleManagementContract',
+            'App\\Foundation\\Runtime',
+            'App\\Foundation\\Experience',
         ];
 
         foreach ($this->phpFiles($root) as $file) {

@@ -130,7 +130,7 @@ install via copy-from-Git (no host source edits).
 | -------- | ---------------------- | ------------------------------------------- |
 | Identity | `mwpn/modmon-identity` | v1.0.0 — certified portable                 |
 | RBAC     | `mwpn/modmon-rbac`     | v1.0.0 — certified portable                 |
-| Settings | `modmon-settings` (TBD)| Phase 1 store+contract — authoring on this host |
+| Settings | `modmon-settings` (TBD)| Phase 2 compliance — portable store certified   |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -142,9 +142,16 @@ RBAC v1 (Phases 1–3 + Phase 5 compliance) lives in
 `docs/reports/rbac-compliance-v1.md`. Requires Identity
 (`identity.user`). Foundation does not ship `Modules/Rbac`.
 
+Settings Phase 2 (2026-09-13): portability/compliance only — no new
+features. `SettingsComplianceTest` + CLI isolated-SQLite proof:
+doctor before install, install owns migration, capability/contract
+lifecycle, fail-closed migration, watched host SHA-256 unchanged, no
+Identity/RBAC requires. Report:
+`docs/reports/settings-compliance-v1.md`.
+
 Settings Phase 1 (2026-09-13): `settings_entries` migration,
 `RuntimeSettingsContract` + `DatabaseRuntimeSettings`, provider binding,
-lifecycle/contract/boundary tests (20). No admin UI, no Foundation
+lifecycle/contract/boundary tests. No admin UI, no Foundation
 patch, no Identity/RBAC dependency. Gap `ContributesSettings` remains
 reported-only. See `Modules/Settings/README.md`.
 
@@ -305,7 +312,8 @@ state. Regression tests in
 7.  Host `users` table ownership — resolved by ADR-0006: `modmon-identity`
     owns `users` and `password_reset_tokens` (Strategy D); `sessions`
     remains Foundation-owned.
-8.  No runtime settings framework.
+8.  No Foundation `ContributesSettings` schema API — Settings ships as
+    portable `settings.runtime` / `RuntimeSettingsContract` (Phase 1–2).
 9.  No `ContributesEvents` interface.
 10. State file concurrency edge cases.
 
@@ -321,9 +329,9 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Settings Phase 2 candidates — optional admin UI only after Phase 1
-    store is stable; still no Foundation `ContributesSettings` unless
-    Architecture Change Protocol authorizes it.
+1.  Settings Phase 3 candidates — optional admin UI only; still no
+    Foundation `ContributesSettings` unless Architecture Change Protocol
+    authorizes it. Extract to `modmon-settings` when ready.
 2.  Implement other platform modules using the authoring standard:
     SaaS/Tenancy, Subscription.
 3.  Implement Owner/Tenant workspace modules.

@@ -466,7 +466,9 @@ A module task is done when:
 4. Single provider per capability.
 5. All module routes use `web` middleware group.
 6. No `ContributesEvents` — register listeners in `boot()`.
-7. No runtime settings module yet — use config + env until `modmon-settings`.
+7. Runtime settings: use `modmon-settings` / capability `settings.runtime`
+   (`RuntimeSettingsContract`) when installed; otherwise config + env.
+   No Foundation `ContributesSettings` schema API yet.
 8. Route deactivation timing (see section 8).
 
 Full appendix: [`module-authoring-standard-v1.md` Appendix B](module-authoring-standard-v1.md#appendix-b-known-foundation-v1-limitations).

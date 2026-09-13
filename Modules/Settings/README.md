@@ -269,8 +269,14 @@ php artisan test Modules/Settings/Tests
 | Disable/Enable | Covered — `SettingsLifecycleTest` |
 | Data preservation | Covered — rows survive disable |
 | Architecture boundary | Covered — `SettingsBoundaryTest` |
+| Portability / compliance | Covered — `SettingsComplianceTest` + `docs/reports/settings-compliance-v1.md` |
 
-## Phase 2 candidates (not started)
+## Phase 2 (compliance)
+
+Portability/compliance certified 2026-09-13 — see
+`docs/reports/settings-compliance-v1.md`. No feature additions in Phase 2.
+
+## Phase 3 candidates (not started)
 
 - Minimal admin UI (routes/nav/`settings.manage`) using optional
   `identity.user` / `authorization.permission`
@@ -283,4 +289,4 @@ php artisan test Modules/Settings/Tests
 
 | Version | Foundation | Description                                      |
 |---------|------------|--------------------------------------------------|
-| 1.0.0   | ^1.0       | Phase 0 scaffold + Phase 1 store/contract.       |
+| 1.0.0   | ^1.0       | Phase 0–1 store/contract + Phase 2 compliance.   |
