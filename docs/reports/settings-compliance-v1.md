@@ -10,6 +10,12 @@ see `docs/reports/settings-compliance-v1.md` in that repository.
 Definition of Done (certified 2026-09-13 on this Foundation host; module
 tests and the full report live in `modmon-settings`).
 
+Fresh GitHub-only proof (2026-09-13): clone Foundation `097f225` + copy
+Settings from `mwpn/modmon-settings` `54b6867` into
+`C:\laragon\www\modmon-settings-proof` — doctor/install/disable/enable,
+contract round-trip, host sources unchanged, 28 module tests PASS.
+**modmon-settings v1 portable certification closed.**
+
 Provides `settings.runtime` (`RuntimeSettingsContract`). No Identity or
 RBAC dependency.
 

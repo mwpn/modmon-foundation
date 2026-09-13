@@ -147,6 +147,25 @@ Settings v1 (Phases 0–2: store + contract + compliance) lives in
 `docs/reports/settings-compliance-v1.md`. Provides `settings.runtime`.
 No Identity/RBAC dependency. Foundation does not ship `Modules/Settings`.
 
+### Portability proof — Settings (final, 2026-09-13)
+
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone `mwpn/modmon-foundation` → `C:\laragon\www\modmon-settings-proof`
+   (HEAD `097f225`).
+2. Clone `mwpn/modmon-settings` → `C:\laragon\www\modmon-settings-proof-src`
+   (HEAD `54b6867`); copy `Modules/Settings` only.
+3. `composer install`, SQLite `.env`, `key:generate`, baseline migrate.
+4. `module:doctor settings` → PASS (discovered).
+5. `module:install settings` → PASS (`Migrations applied`, enabled).
+6. `RuntimeSettingsContract` set/get → PASS.
+7. disable → capability off, row preserved; enable → capability + value
+   restored → PASS.
+8. Watched host SHA-256 vs `HEAD` unchanged → PASS.
+9. `php artisan test Modules/Settings/Tests` → 28 passed.
+
+This closes **modmon-settings v1 portable certification**.
+
 Install Identity, then RBAC; Settings is independent:
 
 ```bash
