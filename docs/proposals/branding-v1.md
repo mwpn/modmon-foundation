@@ -1,6 +1,6 @@
 # Branding v1 Proposal (Phase 0 locked → Phase 1)
 
-**Status:** Extracted — `mwpn/modmon-branding` v1.0.0 (clean-host proof in progress)  
+**Status:** Extracted — `mwpn/modmon-branding` v1.0.0 certified portable  
 **Module repo:** `mwpn/modmon-branding`  
 **Host:** compatible Foundation Contract `^1.0`  
 **Date:** 2026-09-15

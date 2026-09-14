@@ -133,7 +133,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Settings  | `mwpn/modmon-settings`  | v1.0.0 — certified portable                 |
 | Inventory | `mwpn/modmon-inventory` | v1.0.0 — certified portable                 |
 | Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
-| Branding  | `mwpn/modmon-branding`  | v1.0.0 — extracted; clean-host certification in progress |
+| Branding  | `mwpn/modmon-branding`  | v1.0.0 — certified portable                 |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -169,6 +169,31 @@ Branding v1 (Phase 1 application branding) lives in
 `branding.application`. Requires nothing. Owns `branding_application`
 singleton (no seed). No Identity/Tenancy/Settings/RBAC dependency.
 Foundation does not ship `Modules/Branding`.
+
+### Portability proof — Branding (final, 2026-09-15)
+
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone `mwpn/modmon-foundation` → `C:\laragon\www\modmon-branding-proof`
+   (HEAD `0ea4eb7`).
+2. Clone `mwpn/modmon-branding` → `…-proof-src` (HEAD `19455a5`);
+   copy `Modules/Branding` only.
+3. `composer install`, SQLite `.env`, `key:generate`, baseline migrate.
+4. Normal host Vite bootstrap: `npm install` + `npm run build`.
+5. `module:doctor branding` → PASS; no schema mutation.
+6. `module:install branding` → PASS (`Migrations applied`); 0 seed rows;
+   `branding.application` + `BrandingContract` available.
+7. Default `current()` before configure → no insert; configure + GET 200;
+   nav/permission/Blade contributions present.
+8. disable → contributions off; row + asset preserved; fresh boot while
+   disabled → no Branding routes.
+9. enable → restored; fail-closed conflicting migration → NOT installed.
+10. Watched host SHA-256 unchanged → PASS.
+11. `php artisan test Modules/Branding/Tests` → 17 passed.
+12. Full host suite → 124 passed, 1 skipped.
+13. No Foundation runtime changes required.
+
+This closes **modmon-branding v1 portable certification**.
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
@@ -272,6 +297,11 @@ git clone https://github.com/mwpn/modmon-tenancy.git /tmp/modmon-tenancy
 cp -r /tmp/modmon-tenancy/Modules/Tenancy ./Modules/Tenancy
 php artisan module:doctor tenancy
 php artisan module:install tenancy
+
+git clone https://github.com/mwpn/modmon-branding.git /tmp/modmon-branding
+cp -r /tmp/modmon-branding/Modules/Branding ./Modules/Branding
+php artisan module:doctor branding
+php artisan module:install branding
 ```
 
 Foundation retains generic runtime and Experience fixes required by
