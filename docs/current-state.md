@@ -133,6 +133,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Settings  | `mwpn/modmon-settings`  | v1.0.0 — certified portable                 |
 | Inventory | `mwpn/modmon-inventory` | v1.0.0 — certified portable                 |
 | Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
+| Branding  | `mwpn/modmon-branding`  | Phase 1 implemented on authoring host (not yet extracted / clean-host certified) |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -161,6 +162,14 @@ Tenancy v1 (Phases 0–3 + external extract) lives in
 `tenancy.membership`, `tenancy.context`. Requires `identity.user` only.
 No RBAC/Settings/Subscription dependency. Foundation does not ship
 `Modules/Tenancy`.
+
+Branding Phase 1 (application branding) is authored under
+`Modules/Branding/` per `docs/proposals/branding-v1.md`. Provides
+`branding.application` (`BrandingContract`). Requires nothing. Owns
+`branding_application` singleton (no seed). No Settings/Identity/Tenancy
+dependency. No Foundation changes. Authoring-host module tests:
+`php artisan test Modules/Branding/Tests` (15 passed). External extract
++ clean-host certification still pending (`modmon-branding`).
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
@@ -425,11 +434,16 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Extract Branding to `mwpn/modmon-branding` and run clean-host
+    portability certification (Phase 2), then remove in-tree
+    `Modules/Branding` from the Foundation authoring host.
+2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-2.  Subscription platform module (compose with Tenancy; do not merge
+3.  Subscription platform module (compose with Tenancy; do not merge
     billing into Tenancy).
-3.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
+4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
-4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+6.  Future TenancyBranding integration module (do not add `tenant_id`
+    to Branding core).
