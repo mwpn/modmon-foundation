@@ -119,8 +119,28 @@ No delete route — deactivate via `active` so movement history is preserved.
 php artisan test Modules/Inventory/Tests
 ```
 
+### Test Coverage
+
+| Area | Status |
+|------|--------|
+| Manifest / discovery | Covered — doctor + install tests |
+| Installation / migrations | Covered — `InventoryInstallTest` |
+| Capability / StockContract | Covered — install + stock contract tests |
+| Routes / views | Covered — `InventoryContributionTest` |
+| Permissions / nav / dashboard | Covered — contribution + compliance |
+| Disable / enable | Covered — `InventoryLifecycleTest` |
+| Data / movement preservation | Covered — lifecycle + compliance |
+| Domain invariants | Covered — stock + contribution tests |
+| Architecture boundary | Covered — `InventoryBoundaryTest` |
+| Portability / compliance | Covered — `InventoryComplianceTest` + `docs/reports/inventory-compliance-v1.md` |
+
+## Phase 2 (compliance)
+
+Portability/compliance certified 2026-09-13 — see
+`docs/reports/inventory-compliance-v1.md`. No feature additions in Phase 2.
+
 ## Version History
 
 | Version | Foundation | Description |
 |---------|------------|-------------|
-| 1.0.0   | ^1.0       | Phase 0 scaffold + Phase 1 stock core (+ invariant harden). |
+| 1.0.0   | ^1.0       | Phase 0–1 stock core + Phase 2 portability/compliance. |

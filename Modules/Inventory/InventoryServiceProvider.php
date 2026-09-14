@@ -19,6 +19,7 @@ use Modules\Inventory\Domain\Contracts\StockContract;
  * Inventory business module provider.
  *
  * Phase 1: stock core, admin surface, Experience contributions.
+ * Phase 2: portability/compliance only (no feature additions).
  * Does not require Identity, RBAC, or Settings.
  */
 class InventoryServiceProvider extends ServiceProvider implements

@@ -120,7 +120,7 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
-### Inventory Module (authoring — Phase 1)
+### Inventory Module (authoring — Phase 2 certified)
 
 First real portable **business** module under sufficiency proof.
 Provides `inventory.stock` (`StockContract`), owns `inventory_items` /
@@ -129,7 +129,10 @@ low-stock dashboard widget. Empty `requires` (no Identity/RBAC/Settings).
 Phase 1 does not consume `settings.runtime`. Business invariants hardened:
 atomic adjust (transaction + `lockForUpdate`), immutable SKU, deactivate
 (not hard-delete) to preserve movements, and documented composition
-security limitation (permission contribution ≠ HTTP middleware). See
+security limitation (permission contribution ≠ HTTP middleware).
+Phase 2 portability/compliance certified 2026-09-13 —
+`docs/reports/inventory-compliance-v1.md`. Still Foundation-authored
+(not yet extracted to `modmon-inventory`). See
 `Modules/Inventory/README.md`.
 
 ### External platform modules
@@ -311,6 +314,8 @@ executable). Extended reference: `docs/module-authoring-standard-v1.md`.
     (recommended) and `module:verify` (deferred).
 -   `docs/reports/example-module-compliance-v1.md` — Example module
     compliance report.
+-   `docs/reports/inventory-compliance-v1.md` — Inventory v1 Phase 2
+    portability/compliance (FULL COMPLIANCE, 2026-09-13).
 -   `AGENTS.md` — short entrypoint pointing to the canonical standard.
 -   `docs/agent-workflow.md` — agent task templates.
 -   `Modules/Example/README.md` expanded to follow README contract.
@@ -352,13 +357,12 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Inventory Phase 2 — portability/compliance certification (then
-    extract to `modmon-inventory` when ready).
+1.  Extract Inventory to `modmon-inventory` when ready; optional fresh
+    GitHub-only copy proof on a Foundation host that does not ship it.
 2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
 3.  Implement other platform modules using the authoring standard:
     SaaS/Tenancy, Subscription.
 4.  Implement Owner/Tenant workspace modules.
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1) after
-    Inventory certifies.
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
