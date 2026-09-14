@@ -1,7 +1,7 @@
 # Tenancy v1 Proposal (Phase 0)
 
-**Status:** Phase 3 portability/compliance certified (v1)  
-**Module repo (planned):** `mwpn/modmon-tenancy`  
+**Status:** Extracted — `mwpn/modmon-tenancy` v1.0.0 certified portable  
+**Module repo:** `mwpn/modmon-tenancy`  
 **Host:** compatible Foundation Contract `^1.0`  
 **Date:** 2026-09-14
 
@@ -137,9 +137,9 @@ Module tests + clean-host proof:
 
 ## 12. After compliance
 
-1. Optional extract to `modmon-tenancy`
-2. Optional auth/Gate middleware composition (still no Foundation change)
-3. Still exclude SaaS extras listed in non-goals
+Extracted to `mwpn/modmon-tenancy`. Optional later: auth/Gate middleware
+composition; Subscription/workspace modules compose with Tenancy — do
+not merge SaaS extras into this module.
 
 ## 13. Recommended commit (Phase 3)
 

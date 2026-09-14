@@ -132,6 +132,7 @@ repositories and install via copy-from-Git (no host source edits).
 | RBAC      | `mwpn/modmon-rbac`      | v1.0.0 — certified portable                 |
 | Settings  | `mwpn/modmon-settings`  | v1.0.0 — certified portable                 |
 | Inventory | `mwpn/modmon-inventory` | v1.0.0 — certified portable                 |
+| Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -154,40 +155,21 @@ Inventory v1 (Phases 0–2: stock core + compliance) lives in
 No Identity/RBAC/Settings dependency. Foundation does not ship
 `Modules/Inventory`.
 
-Tenancy Phase 3 compliance (2026-09-14) lives under `Modules/Tenancy/`
-in this host. Report: `docs/reports/tenancy-compliance-v1.md`. Provides
-`tenancy.tenant`, `tenancy.membership`, `tenancy.context`; requires
-`identity.user` only. Fresh clean-host proof: Foundation `64c91fb` +
-copy Identity + Tenancy (`f9e5bc3` surface) into
-`C:\laragon\www\modmon-tenancy-proof` — doctor/install/disable/enable,
-HTTP 200 after host Vite build, host SHA unchanged. No SaaS extras, no
-Foundation changes. Planned extract: `mwpn/modmon-tenancy`.
+Tenancy v1 (Phases 0–3 + external extract) lives in
+[modmon-tenancy](https://github.com/mwpn/modmon-tenancy). Pointer:
+`docs/reports/tenancy-compliance-v1.md`. Provides `tenancy.tenant`,
+`tenancy.membership`, `tenancy.context`. Requires `identity.user` only.
+No RBAC/Settings/Subscription dependency. Foundation does not ship
+`Modules/Tenancy`.
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
-Fresh GitHub Foundation + local module copy (Windows paths, no host
-source patches):
+Fresh GitHub-only proof (Windows paths, no host source patches) —
+recorded after Foundation extraction commit and `mwpn/modmon-tenancy`
+publish. See `docs/reports/tenancy-compliance-v1.md` (pointer) and the
+canonical report in `modmon-tenancy` for SHAs and step results.
 
-1. Clone `mwpn/modmon-foundation` → `C:\laragon\www\modmon-tenancy-proof`
-   (HEAD `64c91fb`, Example only).
-2. Copy `Modules/Identity` + `Modules/Tenancy` from authoring host.
-3. `composer install`, SQLite `.env`, `key:generate`, baseline migrate.
-4. Host Vite: `npm install` + `npm run build` (HTTP/`@vite` only; not a
-   Tenancy install side effect).
-5. `module:doctor tenancy` before Identity → FAIL `identity.user`; no
-   schema mutation.
-6. `module:install identity` → PASS; doctor tenancy → PASS.
-7. `module:install tenancy` → PASS (`Migrations applied`); three
-   capabilities + contracts; no RBAC/Settings caps.
-8. Core + HTTP smoke → tenant/membership/context + routes **200**.
-9. Permissions / nav / widget present when enabled.
-10. disable → contributions off; rows preserved; enable → restored.
-11. Watched host SHA-256 unchanged → PASS.
-12. Authoring `TenancyComplianceTest` covers the same invariants +
-    migration fail-closed.
-
-This closes **Tenancy v1 portable certification** on this Foundation
-lineage (extract to `modmon-tenancy` still pending).
+This closes **modmon-tenancy v1 portable certification**.
 
 ### Portability proof — Inventory (final, 2026-09-14)
 
@@ -258,6 +240,11 @@ git clone https://github.com/mwpn/modmon-inventory.git /tmp/modmon-inventory
 cp -r /tmp/modmon-inventory/Modules/Inventory ./Modules/Inventory
 php artisan module:doctor inventory
 php artisan module:install inventory
+
+git clone https://github.com/mwpn/modmon-tenancy.git /tmp/modmon-tenancy
+cp -r /tmp/modmon-tenancy/Modules/Tenancy ./Modules/Tenancy
+php artisan module:doctor tenancy
+php artisan module:install tenancy
 ```
 
 Foundation retains generic runtime and Experience fixes required by
@@ -376,6 +363,8 @@ executable). Extended reference: `docs/module-authoring-standard-v1.md`.
     compliance report.
 -   `docs/reports/inventory-compliance-v1.md` — pointer to
     `mwpn/modmon-inventory` (v1 certified portable, 2026-09-14).
+-   `docs/reports/tenancy-compliance-v1.md` — pointer to
+    `mwpn/modmon-tenancy` (v1 certified portable, 2026-09-14).
 -   `AGENTS.md` — short entrypoint pointing to the canonical standard.
 -   `docs/agent-workflow.md` — agent task templates.
 -   `Modules/Example/README.md` expanded to follow README contract.
@@ -417,13 +406,11 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Extract `Modules/Tenancy` to `mwpn/modmon-tenancy` and re-prove
-    GitHub-only copy install (optional packaging).
-2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-3.  Subscription platform module (compose with Tenancy; do not merge
+2.  Subscription platform module (compose with Tenancy; do not merge
     billing into Tenancy).
-4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
+3.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
