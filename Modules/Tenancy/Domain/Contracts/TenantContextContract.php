@@ -13,8 +13,7 @@ use Modules\Tenancy\Domain\DTOs\TenantRead;
  * Resolves and switches the current tenant for a subject. Switching is
  * gated by membership only — not by RBAC permissions.
  *
- * Phase 0: interface locked. Phase 1: session-backed (or equivalent)
- * implementation + binding. Not a Foundation API.
+ * Persistence is module-owned (`tenancy_contexts`). Not a Foundation API.
  */
 interface TenantContextContract
 {

@@ -154,13 +154,13 @@ Inventory v1 (Phases 0–2: stock core + compliance) lives in
 No Identity/RBAC/Settings dependency. Foundation does not ship
 `Modules/Inventory`.
 
-Tenancy Phase 0 (design + scaffold, 2026-09-14) lives under
-`Modules/Tenancy/` in this host as the Foundation v1 sufficiency proof
-scaffold. Proposal: `docs/proposals/tenancy-v1.md`. Provides
+Tenancy Phase 2 (2026-09-14) lives under `Modules/Tenancy/` in this
+host. Proposal: `docs/proposals/tenancy-v1.md`. Provides
 `tenancy.tenant`, `tenancy.membership`, `tenancy.context`; requires
-`identity.user` only. Public contracts/DTOs locked and unbound. No
-migrations, Experience contributions, or Foundation changes. Tenancy ≠
-SaaS. Planned extract repo: `mwpn/modmon-tenancy`.
+`identity.user` only. Phase 1 contracts + Phase 2 minimal admin
+HTTP/Experience (permissions/nav/widget). Permissions are declared
+only — routes are not auto-gated. No SaaS extras, no Foundation
+changes. Planned extract: `mwpn/modmon-tenancy`.
 
 ### Portability proof — Inventory (final, 2026-09-14)
 
@@ -390,10 +390,8 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Tenancy Phase 1 in `Modules/Tenancy` (or extract `modmon-tenancy`):
-    migrations, bind `TenantContract` / `MembershipContract` /
-    `TenantContextContract`, lifecycle tests — still no Foundation
-    patches; stop-and-report if a real Foundation gap appears.
+1.  Tenancy Phase 3: portability proof / extract `modmon-tenancy` —
+    still no Foundation patches.
 2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.

@@ -1,6 +1,6 @@
 # Tenancy v1 Proposal (Phase 0)
 
-**Status:** Phase 0 locked (design + scaffold)  
+**Status:** Phase 2 minimal Experience/admin surface implemented  
 **Module repo (planned):** `mwpn/modmon-tenancy`  
 **Host:** compatible Foundation Contract `^1.0`  
 **Date:** 2026-09-14
@@ -57,8 +57,8 @@ Rejected alternatives:
 | Roles/abilities | RBAC | Separate, optional |
 | Session table | Foundation | Tenancy may store a session key; does not own `sessions` |
 
-Phase 1 tables (not created in Phase 0): `tenancy_tenants`,
-`tenancy_memberships`.
+Phase 1 tables: `tenancy_tenants`, `tenancy_memberships`,
+`tenancy_contexts`.
 
 ## 4. Public contracts
 
@@ -66,17 +66,18 @@ Interfaces + DTOs live under `Modules/Tenancy/Domain/`. Public methods
 return `TenantRead`, `MembershipRead`, `TenantContextRead` only — never
 Eloquent.
 
-Phase 0: interfaces locked, **unbound**. Phase 1: implement + bind in
-`TenancyServiceProvider::register()`.
+Phase 1: implemented and bound in `TenancyServiceProvider::register()`
+(`TenantService`, `MembershipService`, `DatabaseTenantContext`).
 
 ## 5. Context semantics
 
 - Per `userId` (not a hidden global without subject).
-- `setCurrent` requires active membership of an active tenant.
+- `setCurrent` requires membership of an active tenant; fail closed
+  otherwise.
 - `clear` drops selection only.
 - Not an authorization engine.
-- Storage mechanism is module-internal (likely session) — **not** a
-  Foundation SDK addition.
+- Storage: module-owned `tenancy_contexts` table — **not** a Foundation
+  SDK addition.
 
 ## 6. Identity / RBAC relationship
 
@@ -116,40 +117,34 @@ Do not force Inventory → Tenancy for all hosts.
 
 ## 9. Experience contributions
 
-Phase 0: none. Later: module-owned routes/nav/permissions; widgets only
-on `workspace.default.*` unless a workspace capability is explicitly
-depended on.
+Phase 2: routes, nav (Tenants + Tenant context), permissions
+(`tenancy.tenants.*`, `tenancy.members.manage`, `tenancy.context.switch`),
+and active-tenants widget on `workspace.default.dashboard.stats`.
+Permissions are declared only — HTTP routes are not auto-gated (same
+composition posture as Inventory Phase 1).
 
 ## 10. Foundation gaps
 
-**None for Phase 0.** Scaffold + `module:doctor` use existing Runtime/SDK
-only. No Foundation patch required or performed.
+**None for Phase 0–2.** Scaffold, contracts, migrations, and Experience
+contributions use existing Runtime/SDK only. No Foundation patch
+required or performed.
 
-Stop-and-report triggers for Phase 1+: any need for new Foundation
-contribution interfaces, hard-coded tenant awareness in Experience, or
-Runtime changes to make Tenancy work.
+## 11. Scaffold / doctor / proof
 
-## 11. Scaffold / doctor
+Doctor expects `identity.user` from installed+enabled Identity.
+Module tests cover doctor/install/contracts/HTTP/contributions/lifecycle.
 
-See `Modules/Tenancy/` and the Phase 0 task report. Doctor expects
-`identity.user` to be provided by an installed+enabled Identity module.
+## 12. Phase 3 plan
 
-## 12. Phase 1 plan
+1. Clean-host portability proof / extract `modmon-tenancy`
+2. Optional auth/Gate middleware composition (still no Foundation change)
+3. Still exclude SaaS extras listed in non-goals
 
-1. Migrations + internal models
-2. Contract implementations + container bindings
-3. `UserQueryContract` validation on membership writes
-4. Context persistence (session-backed default)
-5. Lifecycle + boundary + contract tests
-6. Optional minimal admin HTTP/Experience contributions
-7. Clean-host portability proof after Identity
-8. Still exclude SaaS extras listed in non-goals
-
-## 13. Recommended commit
+## 13. Recommended commit (Phase 2)
 
 ```
-docs(tenancy): lock Phase 0 portable Tenancy scaffold and contracts
+feat(tenancy): add Phase 2 minimal admin Experience surface
 
-Scaffold Modules/Tenancy as Foundation v1 sufficiency proof: capability
-map, DTO contracts, workspace/Inventory decisions, no Foundation changes.
+Tenant/membership/context HTTP UI with permission/nav/widget
+contributions; routes remain ungated; no Foundation changes.
 ```

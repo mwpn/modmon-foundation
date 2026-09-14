@@ -10,16 +10,18 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 
 /**
- * Phase 0 boundary: public contracts/DTOs stay Eloquent-free and do not
- * import other modules' internals. Capability dependency on identity.user
- * is declared only in module.json.
+ * Public contracts/DTOs/exceptions stay Eloquent-free and do not import
+ * other modules. Application may use Identity UserQueryContract only.
  */
 final class TenancyBoundaryTest extends TestCase
 {
-    public function test_domain_contracts_and_dtos_do_not_import_eloquent_or_other_modules(): void
+    public function test_public_domain_surface_does_not_import_eloquent_or_other_modules(): void
     {
-        $root = dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Domain';
-        $this->assertDirectoryExists($root);
+        $roots = [
+            dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Domain'.DIRECTORY_SEPARATOR.'Contracts',
+            dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Domain'.DIRECTORY_SEPARATOR.'DTOs',
+            dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Domain'.DIRECTORY_SEPARATOR.'Exceptions',
+        ];
 
         $forbidden = [
             'Illuminate\\Database\\Eloquent',
@@ -34,7 +36,43 @@ final class TenancyBoundaryTest extends TestCase
             'RoleManagementContract',
         ];
 
+        foreach ($roots as $root) {
+            $this->assertDirectoryExists($root);
+
+            foreach ($this->phpFiles($root) as $file) {
+                $source = file_get_contents($file);
+                $this->assertNotFalse($source);
+
+                foreach ($forbidden as $needle) {
+                    $this->assertStringNotContainsString(
+                        $needle,
+                        $source,
+                        "Tenancy public domain file {$file} must not reference {$needle}",
+                    );
+                }
+            }
+        }
+    }
+
+    public function test_module_sources_do_not_import_rbac_settings_inventory_or_identity_models(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $forbidden = [
+            'Modules\\Rbac\\',
+            'Modules\\Settings\\',
+            'Modules\\Inventory\\',
+            'Modules\\Identity\\Models\\',
+            'AuthorizationContract',
+            'RoleManagementContract',
+            'RuntimeSettingsContract',
+            'StockContract',
+        ];
+
         foreach ($this->phpFiles($root) as $file) {
+            if (str_contains($file, DIRECTORY_SEPARATOR.'Tests'.DIRECTORY_SEPARATOR)) {
+                continue;
+            }
+
             $source = file_get_contents($file);
             $this->assertNotFalse($source);
 
@@ -42,7 +80,7 @@ final class TenancyBoundaryTest extends TestCase
                 $this->assertStringNotContainsString(
                     $needle,
                     $source,
-                    "Tenancy Domain file {$file} must not reference {$needle}",
+                    "Tenancy file {$file} must not reference {$needle}",
                 );
             }
         }
@@ -62,6 +100,10 @@ final class TenancyBoundaryTest extends TestCase
         $this->assertNotContains('identity.authentication', $requires);
         $this->assertNotContains('authorization.permission', $requires);
         $this->assertNotContains('settings.runtime', $requires);
+        $this->assertSame(
+            ['tenancy.tenant', 'tenancy.membership', 'tenancy.context'],
+            $manifest['provides'],
+        );
     }
 
     /**

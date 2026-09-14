@@ -12,7 +12,6 @@ use Modules\Tenancy\Domain\DTOs\MembershipRead;
  * Membership is belonging of an Identity user to a tenant.
  * It is not login (Identity) and not permission/role assignment (RBAC).
  *
- * Phase 0: interface locked. Phase 1: persistence + binding.
  */
 interface MembershipContract
 {

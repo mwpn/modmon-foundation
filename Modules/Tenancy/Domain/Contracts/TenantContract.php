@@ -12,7 +12,6 @@ use Modules\Tenancy\Domain\DTOs\TenantRead;
  * Cross-module consumers read/manage tenants here only — never via
  * Tenancy Eloquent models or tenancy_* tables.
  *
- * Phase 0: interface locked. Phase 1: persistence + binding.
  */
 interface TenantContract
 {
@@ -21,6 +20,11 @@ interface TenantContract
     public function findByCode(string $code): ?TenantRead;
 
     public function exists(string $code): bool;
+
+    /**
+     * @return list<TenantRead>
+     */
+    public function all(): array;
 
     /**
      * @return list<TenantRead>
