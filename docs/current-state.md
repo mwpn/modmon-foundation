@@ -134,7 +134,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Inventory | `mwpn/modmon-inventory` | v1.0.0 — certified portable                 |
 | Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
 | Branding  | `mwpn/modmon-branding`  | v1.0.0 — certified portable                 |
-| TenancyBranding | `mwpn/modmon-tenancy-branding` | v1.0.0 — extracted; clean-host certification in progress |
+| TenancyBranding | `mwpn/modmon-tenancy-branding` | v1.0.0 — certified portable                 |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -201,6 +201,26 @@ TenancyBranding v1 (integration addon) lives in
 Pointer: `docs/reports/tenancy-branding-compliance-v1.md`. Provides
 `branding.tenant`. Requires `branding.application`, `tenancy.tenant`,
 `tenancy.context`. Foundation does not ship `Modules/TenancyBranding`.
+
+### Portability proof — TenancyBranding (final, 2026-09-15)
+
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone Foundation `458daf5` → `C:\laragon\www\modmon-tenancy-branding-proof`.
+2. Copy Identity `3fa8792` (Tenancy require), Branding `a5c1902`,
+   Tenancy `dab1597`, TenancyBranding `5d523ee`.
+3. `composer install`, SQLite, baseline migrate, host Vite build.
+4. Doctor before deps → FAIL missing caps; no schema.
+5. Install Identity/Branding/Tenancy → doctor PASS; still no TB schema.
+6. `module:install tenancy-branding` → Migrations applied;
+   `branding.tenant` on; inherit/override/context fallback PASS;
+   app branding unchanged; HTTP/nav/Blade PASS.
+7. Disable preserves row+asset; fresh boot disabled → no routes;
+   enable restores; fail-closed migration PASS; hashes unchanged.
+8. Module tests 18 passed; full host 124 passed / 1 skipped.
+9. No Foundation/Tenancy/Branding/Identity changes.
+
+This closes **modmon-tenancy-branding v1 portable certification**.
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
@@ -309,6 +329,11 @@ git clone https://github.com/mwpn/modmon-branding.git /tmp/modmon-branding
 cp -r /tmp/modmon-branding/Modules/Branding ./Modules/Branding
 php artisan module:doctor branding
 php artisan module:install branding
+
+git clone https://github.com/mwpn/modmon-tenancy-branding.git /tmp/modmon-tenancy-branding
+cp -r /tmp/modmon-tenancy-branding/Modules/TenancyBranding ./Modules/TenancyBranding
+php artisan module:doctor tenancy-branding
+php artisan module:install tenancy-branding
 ```
 
 Foundation retains generic runtime and Experience fixes required by
