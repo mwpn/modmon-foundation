@@ -120,32 +120,18 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
-### Inventory Module (authoring — Phase 2 certified)
-
-First real portable **business** module under sufficiency proof.
-Provides `inventory.stock` (`StockContract`), owns `inventory_items` /
-`inventory_stock_movements`, admin HTTP surface, permissions, nav, and
-low-stock dashboard widget. Empty `requires` (no Identity/RBAC/Settings).
-Phase 1 does not consume `settings.runtime`. Business invariants hardened:
-atomic adjust (transaction + `lockForUpdate`), immutable SKU, deactivate
-(not hard-delete) to preserve movements, and documented composition
-security limitation (permission contribution ≠ HTTP middleware).
-Phase 2 portability/compliance certified 2026-09-13 —
-`docs/reports/inventory-compliance-v1.md`. Still Foundation-authored
-(not yet extracted to `modmon-inventory`). See
-`Modules/Inventory/README.md`.
-
-### External platform modules
+### External modules
 
 Foundation ships only the **Example** reference module under
-`Modules/Example/`. Platform modules live in separate repositories and
-install via copy-from-Git (no host source edits).
+`Modules/Example/`. Platform and business modules live in separate
+repositories and install via copy-from-Git (no host source edits).
 
-| Module   | Repository             | Status                      |
-| -------- | ---------------------- | --------------------------- |
-| Identity | `mwpn/modmon-identity` | v1.0.0 — certified portable |
-| RBAC     | `mwpn/modmon-rbac`     | v1.0.0 — certified portable |
-| Settings | `mwpn/modmon-settings` | v1.0.0 — certified portable |
+| Module    | Repository              | Status                                      |
+| --------- | ----------------------- | ------------------------------------------- |
+| Identity  | `mwpn/modmon-identity`  | v1.0.0 — certified portable                 |
+| RBAC      | `mwpn/modmon-rbac`      | v1.0.0 — certified portable                 |
+| Settings  | `mwpn/modmon-settings`  | v1.0.0 — certified portable                 |
+| Inventory | `mwpn/modmon-inventory` | v1.0.0 — extracted; GitHub-only proof pending |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -161,6 +147,13 @@ Settings v1 (Phases 0–2: store + contract + compliance) lives in
 [modmon-settings](https://github.com/mwpn/modmon-settings). Pointer:
 `docs/reports/settings-compliance-v1.md`. Provides `settings.runtime`.
 No Identity/RBAC dependency. Foundation does not ship `Modules/Settings`.
+
+Inventory v1 (Phases 0–2: stock core + authoring-host compliance) lives in
+[modmon-inventory](https://github.com/mwpn/modmon-inventory). Pointer:
+`docs/reports/inventory-compliance-v1.md`. Provides `inventory.stock`.
+No Identity/RBAC/Settings dependency. Foundation does not ship
+`Modules/Inventory`. Final portable certification remains open until a
+fresh GitHub-only copy proof PASSes.
 
 ### Portability proof — Settings (final, 2026-09-13)
 
@@ -198,6 +191,11 @@ git clone https://github.com/mwpn/modmon-settings.git /tmp/modmon-settings
 cp -r /tmp/modmon-settings/Modules/Settings ./Modules/Settings
 php artisan module:doctor settings
 php artisan module:install settings
+
+git clone https://github.com/mwpn/modmon-inventory.git /tmp/modmon-inventory
+cp -r /tmp/modmon-inventory/Modules/Inventory ./Modules/Inventory
+php artisan module:doctor inventory
+php artisan module:install inventory
 ```
 
 Foundation retains generic runtime and Experience fixes required by
@@ -314,8 +312,9 @@ executable). Extended reference: `docs/module-authoring-standard-v1.md`.
     (recommended) and `module:verify` (deferred).
 -   `docs/reports/example-module-compliance-v1.md` — Example module
     compliance report.
--   `docs/reports/inventory-compliance-v1.md` — Inventory v1 Phase 2
-    portability/compliance (FULL COMPLIANCE, 2026-09-13).
+-   `docs/reports/inventory-compliance-v1.md` — pointer to
+    `mwpn/modmon-inventory` (authoring-host Phase 2 PASS; GitHub-only
+    certification pending).
 -   `AGENTS.md` — short entrypoint pointing to the canonical standard.
 -   `docs/agent-workflow.md` — agent task templates.
 -   `Modules/Example/README.md` expanded to follow README contract.
@@ -357,8 +356,8 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Extract Inventory to `modmon-inventory` when ready; optional fresh
-    GitHub-only copy proof on a Foundation host that does not ship it.
+1.  Fresh GitHub-only Inventory portability proof (then close
+    certification / tag `v1.0.0` on `modmon-inventory` when PASS).
 2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
