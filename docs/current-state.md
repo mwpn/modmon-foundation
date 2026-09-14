@@ -164,10 +164,29 @@ No RBAC/Settings/Subscription dependency. Foundation does not ship
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
-Fresh GitHub-only proof (Windows paths, no host source patches) —
-recorded after Foundation extraction commit and `mwpn/modmon-tenancy`
-publish. See `docs/reports/tenancy-compliance-v1.md` (pointer) and the
-canonical report in `modmon-tenancy` for SHAs and step results.
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone `mwpn/modmon-foundation` → `C:\laragon\www\modmon-tenancy-ext-proof`
+   (HEAD `49ab75e`).
+2. Clone `mwpn/modmon-identity` → `…-proof-identity` (HEAD `3fa8792`);
+   copy `Modules/Identity` only.
+3. Clone `mwpn/modmon-tenancy` → `…-proof-tenancy` (HEAD `18e4e9c`);
+   copy `Modules/Tenancy` only.
+4. `composer install`, SQLite `.env`, `key:generate`, baseline migrate.
+5. Normal host Vite bootstrap: `npm install` + `npm run build` (required
+   for Blade/`@vite` HTTP rendering; not a Tenancy install side effect).
+6. `module:doctor tenancy` before Identity → FAIL `identity.user`; no
+   schema mutation.
+7. `module:install identity` → PASS; doctor tenancy → PASS.
+8. `module:install tenancy` → PASS (`Migrations applied`); three
+   capabilities + contracts; no RBAC/Settings caps.
+9. Core + HTTP smoke → tenant/membership/context + routes **200**.
+10. Permissions / nav / widget present when enabled.
+11. disable → contributions off; rows preserved; enable → restored.
+12. Watched host SHA-256 unchanged → PASS.
+13. `php artisan test Modules/Tenancy/Tests` → 35 passed.
+14. Full host suite → 124 passed, 1 skipped.
+15. No Foundation runtime changes required.
 
 This closes **modmon-tenancy v1 portable certification**.
 

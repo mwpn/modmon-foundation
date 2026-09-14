@@ -10,6 +10,13 @@ see `docs/reports/tenancy-compliance-v1.md` in that repository.
 Definition of Done (certified 2026-09-14 on this Foundation host lineage;
 module tests and the full report live in `modmon-tenancy`).
 
+Fresh GitHub-only proof (2026-09-14): clone Foundation `49ab75e` +
+Identity `3fa8792` + Tenancy `18e4e9c` into
+`C:\laragon\www\modmon-tenancy-ext-proof` — doctor/install/disable/enable,
+HTTP 200 after normal host Vite build, host sources unchanged, 35 module
+tests PASS, full host 124 passed / 1 skipped.
+**modmon-tenancy v1 portable certification closed.**
+
 Provides `tenancy.tenant`, `tenancy.membership`, `tenancy.context`.
 Requires `identity.user` only (typically `mwpn/modmon-identity`). No
 RBAC/Settings/Subscription dependency. Foundation does not ship
