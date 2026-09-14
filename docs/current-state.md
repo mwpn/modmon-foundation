@@ -154,6 +154,14 @@ Inventory v1 (Phases 0–2: stock core + compliance) lives in
 No Identity/RBAC/Settings dependency. Foundation does not ship
 `Modules/Inventory`.
 
+Tenancy Phase 0 (design + scaffold, 2026-09-14) lives under
+`Modules/Tenancy/` in this host as the Foundation v1 sufficiency proof
+scaffold. Proposal: `docs/proposals/tenancy-v1.md`. Provides
+`tenancy.tenant`, `tenancy.membership`, `tenancy.context`; requires
+`identity.user` only. Public contracts/DTOs locked and unbound. No
+migrations, Experience contributions, or Foundation changes. Tenancy ≠
+SaaS. Planned extract repo: `mwpn/modmon-tenancy`.
+
 ### Portability proof — Inventory (final, 2026-09-14)
 
 Fresh GitHub-only proof (Windows paths, no host source patches):
@@ -382,10 +390,14 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Tenancy Phase 1 in `Modules/Tenancy` (or extract `modmon-tenancy`):
+    migrations, bind `TenantContract` / `MembershipContract` /
+    `TenantContextContract`, lifecycle tests — still no Foundation
+    patches; stop-and-report if a real Foundation gap appears.
+2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-2.  Implement other platform modules using the authoring standard:
-    SaaS/Tenancy, Subscription.
-3.  Implement Owner/Tenant workspace modules.
-4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+3.  Subscription platform module (after Tenancy core is usable).
+4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
+    not merge workspace UI into Tenancy).
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
