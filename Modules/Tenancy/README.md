@@ -123,8 +123,8 @@ Declared only — see security notes above.
 
 ## Foundation gaps
 
-**None for Phase 2.** Experience contribution interfaces were sufficient.
-No Foundation patches.
+**None for Phase 0–3.** Experience contribution interfaces and module
+lifecycle were sufficient. No Foundation patches.
 
 ## Testing
 
@@ -139,15 +139,10 @@ php artisan test Modules/Tenancy/Tests
 | Contracts / domain | Covered |
 | HTTP + contributions | Covered — `TenancyContributionTest` |
 | Disable/enable + data + contributions | Covered — `TenancyLifecycleTest` |
-
-## Phase 3 candidates
-
-- Portability proof / extract `modmon-tenancy`
-- Optional auth/Gate middleware composition
-- Still no SaaS extras, workspace framework, or Inventory integration
+| Portability / compliance | Covered — `TenancyComplianceTest` + `docs/reports/tenancy-compliance-v1.md` |
 
 ## Version History
 
 | Version | Foundation | Description |
 |---------|------------|-------------|
-| 1.0.0   | ^1.0       | Phase 0–2: core + minimal Experience admin. |
+| 1.0.0   | ^1.0       | Phase 0–3: core + Experience admin + portability compliance. |

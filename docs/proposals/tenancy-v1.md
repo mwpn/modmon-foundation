@@ -1,6 +1,6 @@
 # Tenancy v1 Proposal (Phase 0)
 
-**Status:** Phase 2 minimal Experience/admin surface implemented  
+**Status:** Phase 3 portability/compliance certified (v1)  
 **Module repo (planned):** `mwpn/modmon-tenancy`  
 **Host:** compatible Foundation Contract `^1.0`  
 **Date:** 2026-09-14
@@ -132,19 +132,20 @@ required or performed.
 ## 11. Scaffold / doctor / proof
 
 Doctor expects `identity.user` from installed+enabled Identity.
-Module tests cover doctor/install/contracts/HTTP/contributions/lifecycle.
+Module tests + clean-host proof:
+`docs/reports/tenancy-compliance-v1.md`.
 
-## 12. Phase 3 plan
+## 12. After compliance
 
-1. Clean-host portability proof / extract `modmon-tenancy`
+1. Optional extract to `modmon-tenancy`
 2. Optional auth/Gate middleware composition (still no Foundation change)
 3. Still exclude SaaS extras listed in non-goals
 
-## 13. Recommended commit (Phase 2)
+## 13. Recommended commit (Phase 3)
 
 ```
-feat(tenancy): add Phase 2 minimal admin Experience surface
+test(tenancy): certify phase 3 portability and compliance
 
-Tenant/membership/context HTTP UI with permission/nav/widget
-contributions; routes remain ungated; no Foundation changes.
+Prove clean-host doctor/install/disable/enable for Tenancy with Identity
+only; no Foundation changes and no SaaS feature creep.
 ```

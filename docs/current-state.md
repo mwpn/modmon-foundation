@@ -154,13 +154,40 @@ Inventory v1 (Phases 0–2: stock core + compliance) lives in
 No Identity/RBAC/Settings dependency. Foundation does not ship
 `Modules/Inventory`.
 
-Tenancy Phase 2 (2026-09-14) lives under `Modules/Tenancy/` in this
-host. Proposal: `docs/proposals/tenancy-v1.md`. Provides
+Tenancy Phase 3 compliance (2026-09-14) lives under `Modules/Tenancy/`
+in this host. Report: `docs/reports/tenancy-compliance-v1.md`. Provides
 `tenancy.tenant`, `tenancy.membership`, `tenancy.context`; requires
-`identity.user` only. Phase 1 contracts + Phase 2 minimal admin
-HTTP/Experience (permissions/nav/widget). Permissions are declared
-only — routes are not auto-gated. No SaaS extras, no Foundation
-changes. Planned extract: `mwpn/modmon-tenancy`.
+`identity.user` only. Fresh clean-host proof: Foundation `64c91fb` +
+copy Identity + Tenancy (`f9e5bc3` surface) into
+`C:\laragon\www\modmon-tenancy-proof` — doctor/install/disable/enable,
+HTTP 200 after host Vite build, host SHA unchanged. No SaaS extras, no
+Foundation changes. Planned extract: `mwpn/modmon-tenancy`.
+
+### Portability proof — Tenancy (final, 2026-09-14)
+
+Fresh GitHub Foundation + local module copy (Windows paths, no host
+source patches):
+
+1. Clone `mwpn/modmon-foundation` → `C:\laragon\www\modmon-tenancy-proof`
+   (HEAD `64c91fb`, Example only).
+2. Copy `Modules/Identity` + `Modules/Tenancy` from authoring host.
+3. `composer install`, SQLite `.env`, `key:generate`, baseline migrate.
+4. Host Vite: `npm install` + `npm run build` (HTTP/`@vite` only; not a
+   Tenancy install side effect).
+5. `module:doctor tenancy` before Identity → FAIL `identity.user`; no
+   schema mutation.
+6. `module:install identity` → PASS; doctor tenancy → PASS.
+7. `module:install tenancy` → PASS (`Migrations applied`); three
+   capabilities + contracts; no RBAC/Settings caps.
+8. Core + HTTP smoke → tenant/membership/context + routes **200**.
+9. Permissions / nav / widget present when enabled.
+10. disable → contributions off; rows preserved; enable → restored.
+11. Watched host SHA-256 unchanged → PASS.
+12. Authoring `TenancyComplianceTest` covers the same invariants +
+    migration fail-closed.
+
+This closes **Tenancy v1 portable certification** on this Foundation
+lineage (extract to `modmon-tenancy` still pending).
 
 ### Portability proof — Inventory (final, 2026-09-14)
 
@@ -390,12 +417,13 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Tenancy Phase 3: portability proof / extract `modmon-tenancy` —
-    still no Foundation patches.
+1.  Extract `Modules/Tenancy` to `mwpn/modmon-tenancy` and re-prove
+    GitHub-only copy install (optional packaging).
 2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-3.  Subscription platform module (after Tenancy core is usable).
+3.  Subscription platform module (compose with Tenancy; do not merge
+    billing into Tenancy).
 4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
 5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
