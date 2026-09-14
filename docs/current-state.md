@@ -131,7 +131,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Identity  | `mwpn/modmon-identity`  | v1.0.0 — certified portable                 |
 | RBAC      | `mwpn/modmon-rbac`      | v1.0.0 — certified portable                 |
 | Settings  | `mwpn/modmon-settings`  | v1.0.0 — certified portable                 |
-| Inventory | `mwpn/modmon-inventory` | v1.0.0 — extracted; GitHub-only proof pending |
+| Inventory | `mwpn/modmon-inventory` | v1.0.0 — certified portable                 |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -148,12 +148,39 @@ Settings v1 (Phases 0–2: store + contract + compliance) lives in
 `docs/reports/settings-compliance-v1.md`. Provides `settings.runtime`.
 No Identity/RBAC dependency. Foundation does not ship `Modules/Settings`.
 
-Inventory v1 (Phases 0–2: stock core + authoring-host compliance) lives in
+Inventory v1 (Phases 0–2: stock core + compliance) lives in
 [modmon-inventory](https://github.com/mwpn/modmon-inventory). Pointer:
 `docs/reports/inventory-compliance-v1.md`. Provides `inventory.stock`.
 No Identity/RBAC/Settings dependency. Foundation does not ship
-`Modules/Inventory`. Final portable certification remains open until a
-fresh GitHub-only copy proof PASSes.
+`Modules/Inventory`.
+
+### Portability proof — Inventory (final, 2026-09-14)
+
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone `mwpn/modmon-foundation` → `C:\laragon\www\modmon-inventory-proof`
+   (HEAD `783d5f9`).
+2. Clone `mwpn/modmon-inventory` → `C:\laragon\www\modmon-inventory-proof-src`
+   (HEAD `0e0ebf2`); copy `Modules/Inventory` only.
+3. `composer install`, SQLite `.env`, `key:generate`, baseline migrate.
+4. Normal host Vite bootstrap: `npm install` + `npm run build` (required
+   for Blade/`@vite` HTTP rendering; not an Inventory install side effect).
+5. `module:doctor inventory` → PASS (discovered; no schema mutation).
+6. `module:install inventory` → PASS (`Migrations applied`, enabled);
+   `inventory.stock` + `StockContract` available.
+7. Stock smoke: `SKU-PROOF` `+10` / `-3` → `onHand=7`, movements `2`.
+8. HTTP views → `200`; permissions / nav / dashboard present when enabled.
+9. disable → capability + Experience contributions off; quantity `7` and
+   movements `2` preserved. Fresh boot while disabled → no Inventory
+   routes registered (same-process retention is Foundation v1 lifecycle
+   timing, not hot-unload).
+10. enable → capability / routes / contributions / data restored.
+11. Watched host SHA-256 unchanged → PASS.
+12. `php artisan test Modules/Inventory/Tests` → 22 passed.
+13. Full host suite → 124 passed, 1 skipped.
+14. No Foundation runtime changes required.
+
+This closes **modmon-inventory v1 portable certification**.
 
 ### Portability proof — Settings (final, 2026-09-13)
 
@@ -313,8 +340,7 @@ executable). Extended reference: `docs/module-authoring-standard-v1.md`.
 -   `docs/reports/example-module-compliance-v1.md` — Example module
     compliance report.
 -   `docs/reports/inventory-compliance-v1.md` — pointer to
-    `mwpn/modmon-inventory` (authoring-host Phase 2 PASS; GitHub-only
-    certification pending).
+    `mwpn/modmon-inventory` (v1 certified portable, 2026-09-14).
 -   `AGENTS.md` — short entrypoint pointing to the canonical standard.
 -   `docs/agent-workflow.md` — agent task templates.
 -   `Modules/Example/README.md` expanded to follow README contract.
@@ -356,12 +382,10 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Fresh GitHub-only Inventory portability proof (then close
-    certification / tag `v1.0.0` on `modmon-inventory` when PASS).
-2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-3.  Implement other platform modules using the authoring standard:
+2.  Implement other platform modules using the authoring standard:
     SaaS/Tenancy, Subscription.
-4.  Implement Owner/Tenant workspace modules.
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+3.  Implement Owner/Tenant workspace modules.
+4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
