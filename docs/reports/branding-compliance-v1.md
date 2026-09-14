@@ -1,40 +1,24 @@
-# Branding v1 Compliance Report (Phase 1 authoring host)
+# Branding v1 Compliance Report (relocated)
 
-**Status:** Phase 1 implemented and proven on the Foundation authoring
-host. External GitHub-only clean-host certification and extract to
-`mwpn/modmon-branding` remain pending.
+The Branding module was extracted from `modmon-foundation` into its own
+repository after Phase 1 portability/compliance.
 
-**Proposal:** [`docs/proposals/branding-v1.md`](../proposals/branding-v1.md)
+**Canonical location:** [mwpn/modmon-branding](https://github.com/mwpn/modmon-branding) —
+see `docs/reports/branding-compliance-v1.md` in that repository.
 
-## Provides / requires
+**Result:** FULL COMPLIANCE pending final GitHub-only proof SHA recording
+in `modmon-branding` (extract complete; Foundation no longer ships
+`Modules/Branding`).
 
-| Capability | Contract | Requires |
-|------------|----------|----------|
-| `branding.application` | `BrandingContract` | `[]` |
+Provides `branding.application` (`BrandingContract`). Requires nothing.
+No Identity/Tenancy/Settings/RBAC dependency. Foundation does not ship
+`Modules/Branding`.
 
-No Settings, Identity, RBAC, or Tenancy dependency.
+Install:
 
-## Authoring-host proof (2026-09-15)
-
-1. `module:doctor branding` — PASS (discovered; no schema mutation).
-2. `module:install branding` — PASS (`Migrations applied`); table
-   `branding_application` exists with **0 rows** (no seed).
-3. `BrandingContract::current()` before configure → defaults from
-   `config('app.name')`, `configured=false`.
-4. Admin HTTP `/branding` edit + validated colors + logo upload → PASS.
-5. Contributions: nav `branding.edit`, permission `branding.manage`.
-6. `module:disable branding` → capability/contributions off; row
-   preserved; `module:enable branding` → restored.
-7. `php artisan test Modules/Branding/Tests` → **15 passed**.
-8. Watched host Foundation sources unchanged in compliance test.
-9. **No Foundation runtime/SDK/Experience patches.**
-
-## Foundation gaps
-
-**None for Phase 1.**
-
-## Next
-
-Extract to `modmon-branding`, run fresh GitHub-only portability proof,
-then remove `Modules/Branding` from the Foundation tree (same posture as
-Identity/Settings/Inventory/Tenancy).
+```bash
+git clone https://github.com/mwpn/modmon-branding.git /tmp/modmon-branding
+cp -r /tmp/modmon-branding/Modules/Branding ./Modules/Branding
+php artisan module:doctor branding
+php artisan module:install branding
+```
