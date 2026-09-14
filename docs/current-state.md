@@ -134,7 +134,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Inventory | `mwpn/modmon-inventory` | v1.0.0 — certified portable                 |
 | Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
 | Branding  | `mwpn/modmon-branding`  | v1.0.0 — certified portable                 |
-| TenancyBranding | `mwpn/modmon-tenancy-branding` (planned) | Phase 1 implemented on authoring host (not yet extracted) |
+| TenancyBranding | `mwpn/modmon-tenancy-branding` | v1.0.0 — extracted; clean-host certification in progress |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -196,14 +196,11 @@ Fresh GitHub-only proof (Windows paths, no host source patches):
 
 This closes **modmon-branding v1 portable certification**.
 
-TenancyBranding Phase 1 (integration addon) is authored under
-`Modules/TenancyBranding/` per `docs/proposals/tenancy-branding-v1.md`.
-Provides `branding.tenant` (`TenantBrandingContract`). Requires
-`branding.application`, `tenancy.tenant`, `tenancy.context`. Owns
-`tenancy_branding_overrides` (no FK). Does not replace
-`branding.application`. No Foundation/Tenancy/Branding/Identity source
-changes. Authoring-host tests:
-`php artisan test Modules/TenancyBranding/Tests` (16 passed).
+TenancyBranding v1 (integration addon) lives in
+[modmon-tenancy-branding](https://github.com/mwpn/modmon-tenancy-branding).
+Pointer: `docs/reports/tenancy-branding-compliance-v1.md`. Provides
+`branding.tenant`. Requires `branding.application`, `tenancy.tenant`,
+`tenancy.context`. Foundation does not ship `Modules/TenancyBranding`.
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
@@ -473,14 +470,11 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Extract TenancyBranding to `mwpn/modmon-tenancy-branding` and run
-    clean-host portability certification; remove in-tree
-    `Modules/TenancyBranding` from the Foundation authoring host.
-2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-3.  Subscription platform module (compose with Tenancy; do not merge
+2.  Subscription platform module (compose with Tenancy; do not merge
     billing into Tenancy).
-4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
+3.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
