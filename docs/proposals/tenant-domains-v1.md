@@ -1,7 +1,7 @@
 # TenantDomains v1 Proposal (Phase 0)
 
-**Status:** Phase 1 implemented on authoring host (not yet extracted)  
-**Module repo (target):** `mwpn/modmon-tenant-domains`  
+**Status:** Extracted — `mwpn/modmon-tenant-domains` v1.0.0 (clean-host proof in progress)  
+**Module repo:** `mwpn/modmon-tenant-domains`  
 **Host:** compatible Foundation Contract `^1.0`  
 **Date:** 2026-09-15  
 **Depends on:** certified Tenancy v1 public contracts only
