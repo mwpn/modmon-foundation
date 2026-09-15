@@ -240,8 +240,25 @@ and never mutates `TenantContext`. Foundation does not ship
 
 ### Portability proof — TenantLanding (final, 2026-09-15)
 
-Fresh GitHub-only proof recorded after extract (see compliance report in
-`mwpn/modmon-tenant-landing`). Foundation no longer owns the module.
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone Foundation `e39474e` → `C:\laragon\www\modmon-tenant-landing-proof`.
+2. Copy Identity `3fa8792`, Tenancy `dab1597`, TenantDomains `3deea87`,
+   TenantLanding `dc7e035` (+ Branding `a5c1902` /
+   TenancyBranding `5d523ee` for optional cascade checks).
+3. `composer install`, SQLite, baseline migrate, host Vite build.
+4. Doctor before TenantDomains → FAIL `tenancy.domain`; no schema.
+5. Install Identity + Tenancy + TenantDomains → doctor PASS; still no
+   Landing schema.
+6. `module:install tenant-landing` → Migrations applied;
+   resolve(host) hit/miss, no TenantContext mutation, branding cascade
+   optional, login CTA gate, admin/nav/permission PASS.
+7. Disable preserves rows; fresh boot disabled → no routes/intercept;
+   enable restores; fail-closed migration PASS; hashes unchanged.
+8. Module tests 21 passed; full host 124 passed / 1 skipped.
+9. No Foundation/TenantDomains/Tenancy/Identity/Branding changes.
+
+This closes **modmon-tenant-landing v1 portable certification**.
 
 ### Portability proof — TenantDomains (final, 2026-09-15)
 
@@ -538,8 +555,8 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Extract/certify TenantLanding to `mwpn/modmon-tenant-landing` after
-    fresh GitHub-only portability proof (same pattern as TenantDomains).
+1.  Tag `mwpn/modmon-tenant-landing` **`v1.0.0`** at the certification-
+    close commit (recommended after docs close push).
 2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
@@ -548,6 +565,7 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
 5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
-6.  Optional follow-up: align TenantDomains HTTP middleware registration
-    with Http Kernel `appendMiddlewareToGroup` (Landing already uses the
-    Kernel path; Router-only push is overwritten on Laravel 13 dispatch).
+6.  Optional follow-up (out of TenantLanding certification): align
+    TenantDomains HTTP middleware registration with Http Kernel
+    `appendMiddlewareToGroup` if product HTTP needs request attributes
+    without calling `TenantDomainContract::resolve` directly.
