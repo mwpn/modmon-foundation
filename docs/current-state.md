@@ -135,7 +135,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
 | Branding  | `mwpn/modmon-branding`  | v1.0.0 — certified portable                 |
 | TenancyBranding | `mwpn/modmon-tenancy-branding` | v1.0.0 — certified portable                 |
-| TenantDomains | `mwpn/modmon-tenant-domains` | v1.0.0 — extracted; clean-host certification in progress |
+| TenantDomains | `mwpn/modmon-tenant-domains` | v1.0.0 — certified portable |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -228,6 +228,25 @@ TenantDomains v1 (hostname → tenant integration) lives in
 Pointer: `docs/reports/tenant-domains-compliance-v1.md`. Provides
 `tenancy.domain`. Requires `tenancy.tenant` only. Foundation does not
 ship `Modules/TenantDomains`.
+
+### Portability proof — TenantDomains (final, 2026-09-15)
+
+Fresh GitHub-only proof (Windows paths, no host source patches):
+
+1. Clone Foundation `1deeb96` → `C:\laragon\www\modmon-tenant-domains-proof`.
+2. Copy Identity `3fa8792`, Tenancy `dab1597`, TenantDomains `e0ed83a`.
+3. `composer install`, SQLite, baseline migrate, host Vite build.
+4. Doctor before Tenancy → FAIL missing `tenancy.tenant`; no schema.
+5. Install Identity + Tenancy → doctor PASS; still no TD schema.
+6. `module:install tenant-domains` → Migrations applied;
+   normalize/primary/resolve PASS; middleware attrs only;
+   `TenantContext` unchanged; HTTP/nav/permission PASS.
+7. Disable preserves rows; fresh boot disabled → no routes;
+   enable restores; fail-closed migration PASS; hashes unchanged.
+8. Module tests 16 passed; full host 124 passed / 1 skipped.
+9. No Foundation/Tenancy/Identity changes.
+
+This closes **modmon-tenant-domains v1 portable certification**.
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 
