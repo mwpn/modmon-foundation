@@ -229,6 +229,15 @@ Pointer: `docs/reports/tenant-domains-compliance-v1.md`. Provides
 `tenancy.domain`. Requires `tenancy.tenant` only. Foundation does not
 ship `Modules/TenantDomains`.
 
+TenantLanding Phase 1 (tenant-facing landing Experience) lives in-host
+as `Modules/TenantLanding` (extract path: `mwpn/modmon-tenant-landing`).
+Proposal: `docs/proposals/tenant-landing-v1.md`. Provides
+`tenancy.landing`. Requires `tenancy.domain` only. Optional branding
+cascade (`branding.tenant` → `branding.application` → tenant name) and
+optional Identity login CTA. Domain-resolved tenant is request-scoped
+and never mutates `TenantContext`. Foundation does not ship TenantLanding
+as mandatory foundation.
+
 ### Portability proof — TenantDomains (final, 2026-09-15)
 
 Fresh GitHub-only proof (Windows paths, no host source patches):
@@ -524,11 +533,16 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Extract/certify TenantLanding to `mwpn/modmon-tenant-landing` after
+    fresh GitHub-only portability proof (same pattern as TenantDomains).
+2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-2.  Subscription platform module (compose with Tenancy; do not merge
+3.  Subscription platform module (compose with Tenancy; do not merge
     billing into Tenancy).
-3.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
+4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
-4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+6.  Optional follow-up: align TenantDomains HTTP middleware registration
+    with Http Kernel `appendMiddlewareToGroup` (Landing already uses the
+    Kernel path; Router-only push is overwritten on Laravel 13 dispatch).
