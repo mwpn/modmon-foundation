@@ -135,7 +135,7 @@ repositories and install via copy-from-Git (no host source edits).
 | Tenancy   | `mwpn/modmon-tenancy`   | v1.0.0 — certified portable                 |
 | Branding  | `mwpn/modmon-branding`  | v1.0.0 — certified portable                 |
 | TenancyBranding | `mwpn/modmon-tenancy-branding` | v1.0.0 — certified portable                 |
-| TenantDomains | `mwpn/modmon-tenant-domains` | v1.0.0 — certified portable |
+| TenantDomains | `mwpn/modmon-tenant-domains` | v1.0.0 released (`3deea87`) |
 
 Identity v1 (Phases 1–6 complete) per `docs/proposals/identity-v1.md`
 and ADR-0006. Compliance report and module tests live in
@@ -247,6 +247,9 @@ Fresh GitHub-only proof (Windows paths, no host source patches):
 9. No Foundation/Tenancy/Identity changes.
 
 This closes **modmon-tenant-domains v1 portable certification**.
+
+**Released:** annotated tag `v1.0.0` at `3deea87` pushed to
+`mwpn/modmon-tenant-domains` (2026-09-15).
 
 ### Portability proof — Tenancy (final, 2026-09-14)
 

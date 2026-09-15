@@ -19,6 +19,8 @@ re-enable, fail-closed migration, host sources unchanged, 16 module
 tests PASS, full host 124 passed / 1 skipped.
 **modmon-tenant-domains v1 portable certification closed.**
 
+**Released:** GitHub tag **`v1.0.0`** @ `3deea87` (2026-09-15).
+
 Provides `tenancy.domain`. Requires `tenancy.tenant` only. Foundation
 does not ship `Modules/TenantDomains`.
 
