@@ -229,14 +229,19 @@ Pointer: `docs/reports/tenant-domains-compliance-v1.md`. Provides
 `tenancy.domain`. Requires `tenancy.tenant` only. Foundation does not
 ship `Modules/TenantDomains`.
 
-TenantLanding Phase 1 (tenant-facing landing Experience) lives in-host
-as `Modules/TenantLanding` (extract path: `mwpn/modmon-tenant-landing`).
-Proposal: `docs/proposals/tenant-landing-v1.md`. Provides
+TenantLanding v1 (tenant-facing landing Experience) lives in
+[modmon-tenant-landing](https://github.com/mwpn/modmon-tenant-landing).
+Pointer: `docs/reports/tenant-landing-compliance-v1.md`. Provides
 `tenancy.landing`. Requires `tenancy.domain` only. Optional branding
 cascade (`branding.tenant` → `branding.application` → tenant name) and
 optional Identity login CTA. Domain-resolved tenant is request-scoped
-and never mutates `TenantContext`. Foundation does not ship TenantLanding
-as mandatory foundation.
+and never mutates `TenantContext`. Foundation does not ship
+`Modules/TenantLanding`.
+
+### Portability proof — TenantLanding (final, 2026-09-15)
+
+Fresh GitHub-only proof recorded after extract (see compliance report in
+`mwpn/modmon-tenant-landing`). Foundation no longer owns the module.
 
 ### Portability proof — TenantDomains (final, 2026-09-15)
 
