@@ -94,6 +94,7 @@ class FoundationServiceProvider extends ServiceProvider
 
         // Register Experience Blade components
         Blade::componentNamespace('App\\Foundation\\Experience\\Components', 'foundation');
+        Blade::anonymousComponentPath(__DIR__ . '/Experience/views/components', 'foundation');
 
         // Load Foundation views
         $this->loadViewsFrom(__DIR__ . '/Experience/views', 'foundation');

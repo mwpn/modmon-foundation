@@ -1,5 +1,5 @@
 @if(count($widgets) > 0)
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-4 md:gap-6">
         @foreach($widgets as $widget)
             @include($widget->view, $widget->data)
         @endforeach

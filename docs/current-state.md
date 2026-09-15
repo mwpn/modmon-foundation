@@ -97,11 +97,30 @@ and `npm install` on target Laragon environment before first run.
 -   `WorkspaceRegistry` — in-memory, supports slots and workspace
     extraction
 -   `PermissionRegistry` — in-memory, grouped-by-module
--   Blade components: `AppShell`, `DashboardSlot`, `NavItem`
+-   Blade components: `AppShell`, `GuestShell`, `DashboardSlot`, `NavItem`
 -   Design-system views: card, stat-card, page-header, alert, badge,
-    button, empty-state
--   TailAdmin-backed layout (app shell with sidebar, topbar,
-    dark-mode support)
+    button, empty-state, avatar
+-   TailAdmin-inspired AppShell (Phase 1+2 **final**): local
+    `.source/tailadmin-laravel-main` is visual reference only
+    (`/.source/` gitignored; never a runtime dependency). Alpine
+    sidebar (backdrop, collapse, hover-expand), TailAdmin-style mobile
+    header (hamburger | brand | ⋮ → theme/user row), desktop topbar with
+    avatar/dropdown logout only, dark/light persist, runtime auth chrome
+    (no Identity hard dependency). Menu-item utilities adapted from
+    TailAdmin CSS patterns.
+-   GuestShell: TailAdmin signin composition (form column + brand-950
+    panel + floating theme toggle). Host provides `GET /dashboard`
+    (`name: dashboard`, `auth`). Identity login targets `dashboard`
+    when present without Foundation importing Identity.
+-   Dashboard host uses `max-w-(--breakpoint-2xl)`; DashboardSlot
+    auto-fit grid expands sparse widgets (no fake metrics).
+-   Regression:
+    `tests/Feature/Foundation/ExperienceDashboardTest.php`,
+    `tests/Feature/Foundation/ExperienceGuestShellTest.php`,
+    `tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`
+-   Experience Phase 2 **finalized** (2026-09-16): hygiene + runtime
+    composition verified with Example + Identity enabled; no further
+    visual work planned unless a real bug appears.
 
 **Infrastructure**
 -   `FoundationServiceProvider` — wires all layers, registers commands,

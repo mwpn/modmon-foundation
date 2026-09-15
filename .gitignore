@@ -1,6 +1,9 @@
 /vendor/
 /node_modules/
 
+# Local visual reference only — never a runtime dependency
+/.source/
+
 /public/build/
 /public/hot
 /public/storage

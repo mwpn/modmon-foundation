@@ -1,13 +1,32 @@
 <a
     href="{{ url($route) }}"
-    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
-        {{ $active
-            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200'
-            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-        }}"
+    @class([
+        'menu-item group',
+        'menu-item-active' => $active,
+        'menu-item-inactive' => ! $active,
+    ])
+    :class="(! $store.sidebar.isExpanded && ! $store.sidebar.isHovered && ! $store.sidebar.isMobileOpen)
+        ? 'xl:justify-center'
+        : 'justify-start'"
+    @click="if (window.innerWidth < 1280) { $store.sidebar.setMobileOpen(false) }"
+    @if($active) aria-current="page" @endif
 >
     @if($icon)
-        <span class="mr-3 text-lg">{!! $icon !!}</span>
+        <span @class([
+            'menu-item-icon-active' => $active,
+            'menu-item-icon-inactive' => ! $active,
+        ])>{!! $icon !!}</span>
+    @else
+        <span @class([
+            'flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold',
+            'menu-item-icon-active bg-brand-500/15' => $active,
+            'menu-item-icon-inactive bg-gray-100 dark:bg-white/5' => ! $active,
+        ])>{{ strtoupper(substr($label, 0, 1)) }}</span>
     @endif
-    <span>{{ $label }}</span>
+
+    <span
+        class="menu-item-text"
+        x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
+        x-cloak
+    >{{ $label }}</span>
 </a>
