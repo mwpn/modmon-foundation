@@ -23,6 +23,9 @@ fail-closed migration, host sources unchanged, 21 module tests PASS,
 full host 124 passed / 1 skipped.
 **modmon-tenant-landing v1 portable certification closed.**
 
+**Released:** annotated tag `v1.0.0` at `7d577ac` pushed to
+`mwpn/modmon-tenant-landing` (2026-09-15).
+
 Provides `tenancy.landing`. Requires `tenancy.domain` only. Foundation
 does not ship `Modules/TenantLanding`.
 

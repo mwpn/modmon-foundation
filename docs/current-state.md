@@ -260,6 +260,9 @@ Fresh GitHub-only proof (Windows paths, no host source patches):
 
 This closes **modmon-tenant-landing v1 portable certification**.
 
+**Released:** annotated tag `v1.0.0` at `7d577ac` pushed to
+`mwpn/modmon-tenant-landing` (2026-09-15).
+
 ### Portability proof — TenantDomains (final, 2026-09-15)
 
 Fresh GitHub-only proof (Windows paths, no host source patches):
@@ -555,17 +558,15 @@ never written by the module (ADR-0006 amendment 2026-08-12).
 
 ## Next Recommended Work
 
-1.  Tag `mwpn/modmon-tenant-landing` **`v1.0.0`** at the certification-
-    close commit (recommended after docs close push).
-2.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
+1.  Optional Settings Phase 3 (admin UI) in `modmon-settings` — still no
     Foundation `ContributesSettings` unless Architecture Change Protocol
     authorizes it.
-3.  Subscription platform module (compose with Tenancy; do not merge
+2.  Subscription platform module (compose with Tenancy; do not merge
     billing into Tenancy).
-4.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
+3.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
     not merge workspace UI into Tenancy).
-5.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
-6.  Optional follow-up (out of TenantLanding certification): align
+4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
+5.  Optional follow-up (out of TenantLanding certification): align
     TenantDomains HTTP middleware registration with Http Kernel
     `appendMiddlewareToGroup` if product HTTP needs request attributes
     without calling `TenantDomainContract::resolve` directly.
