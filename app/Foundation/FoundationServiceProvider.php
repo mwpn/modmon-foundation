@@ -6,6 +6,7 @@ namespace App\Foundation;
 
 use App\Foundation\Experience\Navigation\NavigationRegistry;
 use App\Foundation\Experience\PermissionRegistry;
+use App\Foundation\Experience\Workspace\DefaultActiveWorkspace;
 use App\Foundation\Experience\Workspace\WorkspaceRegistry;
 use App\Foundation\Runtime\CapabilityRegistry;
 use App\Foundation\Runtime\Commands\FoundationDoctorCommand;
@@ -21,6 +22,7 @@ use App\Foundation\Runtime\ManifestValidator;
 use App\Foundation\Runtime\ModuleDiscovery;
 use App\Foundation\Runtime\ModuleManager;
 use App\Foundation\Runtime\ModuleRegistrar;
+use App\Foundation\SDK\Contracts\ActiveWorkspaceContract;
 use App\Foundation\SDK\Contracts\CapabilityRegistryContract;
 use App\Foundation\SDK\Contracts\ModuleRegistrarContract;
 use App\Foundation\SDK\Contracts\NavigationRegistryContract;
@@ -49,6 +51,7 @@ class FoundationServiceProvider extends ServiceProvider
         $this->app->singleton(NavigationRegistryContract::class, NavigationRegistry::class);
         $this->app->singleton(WorkspaceRegistryContract::class, WorkspaceRegistry::class);
         $this->app->singleton(PermissionRegistryContract::class, PermissionRegistry::class);
+        $this->app->singleton(ActiveWorkspaceContract::class, DefaultActiveWorkspace::class);
 
         // --- Runtime components ---
 

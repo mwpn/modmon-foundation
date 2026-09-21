@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Foundation\Experience\Components;
 
+use App\Foundation\SDK\Contracts\ActiveWorkspaceContract;
 use App\Foundation\SDK\Contracts\NavigationRegistryContract;
 use App\Foundation\SDK\DTOs\NavigationItem;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -20,6 +21,10 @@ use Illuminate\View\Component;
  * authenticated user is allowed that ability through Laravel Gate.
  * The registry itself is unchanged — disabled-module removal still
  * happens there; this component only applies visibility at render time.
+ *
+ * When `$workspace` is null, navigation is filtered by
+ * {@see ActiveWorkspaceContract::current()} (default `workspace.default`).
+ * Explicit `$workspace` overrides the resolver for that render.
  *
  * Auth user label / logout action are resolved at runtime only. Foundation
  * does not import Identity or any auth module.
@@ -39,6 +44,8 @@ class AppShell extends Component
     public function __construct(
         ?string $workspace = null,
     ) {
+        $workspace ??= app(ActiveWorkspaceContract::class)->current();
+
         $nav = app(NavigationRegistryContract::class);
         $this->navigationItems  = $this->visible($nav->items($workspace));
         $this->navigationGroups = $this->visibleGroups($nav->grouped($workspace));

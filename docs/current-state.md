@@ -78,7 +78,7 @@ and `npm install` on target Laragon environment before first run.
 -   `ModuleState` — enum (discovered, installed, enabled, disabled)
 -   Contracts: `ModuleRegistrarContract`, `CapabilityRegistryContract`,
     `NavigationRegistryContract`, `WorkspaceRegistryContract`,
-    `PermissionRegistryContract`
+    `PermissionRegistryContract`, `ActiveWorkspaceContract`
 -   DTOs: `NavigationItem`, `DashboardWidget`, `PermissionDefinition`,
     `ModuleDiagnostic`
 -   Contributions: `ContributesNavigation`, `ContributesDashboard`,
@@ -94,6 +94,12 @@ and `npm install` on target Laragon environment before first run.
     and unauthorized users. No new contract; no RBAC coupling.
     Regression:
     `tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`.
+-   `ActiveWorkspaceContract` + `DefaultActiveWorkspace` — generic
+    active workspace id (default `workspace.default`). Hosts/workspace
+    modules may rebind; Foundation does not interpret tenant/SaaS.
+    `foundation::dashboard` and `AppShell` (when `$workspace` is null)
+    follow `current()`. Regression:
+    `tests/Feature/Foundation/ActiveWorkspaceTest.php`.
 -   `WorkspaceRegistry` — in-memory, supports slots and workspace
     extraction
 -   `PermissionRegistry` — in-memory, grouped-by-module

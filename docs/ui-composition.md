@@ -28,6 +28,12 @@ Examples: - `workspace.owner` - `workspace.tenant` - future
 
 Workspace providers are installable modules/capabilities.
 
+Active workspace is resolved through `ActiveWorkspaceContract`
+(default implementation returns `workspace.default`). Foundation does
+not choose based on hostname, tenant, or SaaS product — the host or a
+workspace module rebinds the contract. `foundation::dashboard` and
+`AppShell` (when no explicit workspace is passed) follow `current()`.
+
 ## Dashboard
 
 Dashboard modules/feature modules contribute widgets to named workspace

@@ -1,4 +1,8 @@
 <x-foundation::app-shell>
+    @php
+        $workspace = app(\App\Foundation\SDK\Contracts\ActiveWorkspaceContract::class)->current();
+    @endphp
+
     <x-slot:header>
         <div>
             <p class="text-xs font-medium uppercase tracking-[0.08em] text-gray-400">Workspace</p>
@@ -12,7 +16,7 @@
     ])
 
     <section class="space-y-6">
-        <x-foundation::dashboard-slot slot="workspace.default.dashboard.stats" />
-        <x-foundation::dashboard-slot slot="workspace.default.dashboard.main" />
+        <x-foundation::dashboard-slot :slot="$workspace . '.dashboard.stats'" />
+        <x-foundation::dashboard-slot :slot="$workspace . '.dashboard.main'" />
     </section>
 </x-foundation::app-shell>

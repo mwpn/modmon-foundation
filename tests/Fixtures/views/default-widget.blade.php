@@ -1,0 +1,1 @@
+<div>Default Widget</div>
