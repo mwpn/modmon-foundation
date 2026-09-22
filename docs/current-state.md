@@ -100,6 +100,9 @@ and `npm install` on target Laragon environment before first run.
     `foundation::dashboard` and `AppShell` (when `$workspace` is null)
     follow `current()`. Regression:
     `tests/Feature/Foundation/ActiveWorkspaceTest.php`.
+    Foundation Contract version is **`1.1.0`**
+    (`CompatibilityChecker::FOUNDATION_VERSION`) so modules can require
+    `compatibility.foundation: ^1.1` when they depend on this API.
 -   `WorkspaceRegistry` — in-memory, supports slots and workspace
     extraction
 -   `PermissionRegistry` — in-memory, grouped-by-module

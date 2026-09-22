@@ -1232,6 +1232,7 @@ Foundation Contract versions the module supports. Use Composer semver
 constraints:
 
 - `^1.0` — compatible with Foundation 1.0.0 through 1.x.x.
+- `^1.1` — requires Foundation Contract 1.1.0+ (ActiveWorkspace API).
 - `~1.0` — compatible with 1.0.x only.
 - `>=1.0 <3.0` — compatible with Foundation 1.x and 2.x.
 
@@ -1468,7 +1469,7 @@ App\Foundation\SDK\ModuleState
 ### Constants
 
 ```
-App\Foundation\Runtime\CompatibilityChecker::FOUNDATION_VERSION = '1.0.0'
+App\Foundation\Runtime\CompatibilityChecker::FOUNDATION_VERSION = '1.1.0'
 ```
 
 ### Artisan Commands

@@ -34,6 +34,10 @@ not choose based on hostname, tenant, or SaaS product — the host or a
 workspace module rebinds the contract. `foundation::dashboard` and
 `AppShell` (when no explicit workspace is passed) follow `current()`.
 
+Foundation Contract **1.1.0** is the first contract version that ships
+this API. Modules that require it should declare
+`compatibility.foundation: "^1.1"`.
+
 ## Dashboard
 
 Dashboard modules/feature modules contribute widgets to named workspace

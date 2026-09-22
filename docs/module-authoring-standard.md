@@ -157,7 +157,12 @@ Always declare all three constraints:
 
 `CompatibilityChecker` evaluates these during `module:doctor`, `module:install`, and `module:enable`. Omitting a constraint skips that check and risks silent incompatibility.
 
-Foundation version constant: `CompatibilityChecker::FOUNDATION_VERSION` (`1.0.0`).
+Foundation version constant: `CompatibilityChecker::FOUNDATION_VERSION` (`1.1.0`).
+
+Contract `1.1.0` introduces the Experience `ActiveWorkspaceContract` API
+(default `workspace.default`). Modules that need that API should declare
+`compatibility.foundation: ^1.1`. Modules declaring `^1.0` remain
+SemVer-compatible with `1.1.0`.
 
 ---
 
