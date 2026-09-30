@@ -1,0 +1,22 @@
+{
+    "schema": 1,
+    "name": "Workspace",
+    "code": "workspace",
+    "version": "1.0.0",
+    "type": "platform",
+    "provider": "Modules\\Workspace\\WorkspaceServiceProvider",
+    "compatibility": {
+        "php": "^8.3",
+        "laravel": "^13.0",
+        "foundation": "^1.1"
+    },
+    "requires": {
+        "capabilities": [
+            "tenancy.context"
+        ]
+    },
+    "provides": [
+        "workspace.owner",
+        "workspace.tenant"
+    ]
+}
