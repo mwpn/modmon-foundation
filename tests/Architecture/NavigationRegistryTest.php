@@ -65,6 +65,60 @@ class NavigationRegistryTest extends TestCase
         $this->assertCount(2, $ownerItems); // owner + global (null workspace)
     }
 
+    public function test_primary_workspace_match_is_visible(): void
+    {
+        $this->registry->register(new NavigationItem(
+            'owner', 'mod', 'Owner', '/owner', workspace: 'workspace.owner',
+        ));
+
+        $this->assertCount(1, $this->registry->items('workspace.owner'));
+    }
+
+    public function test_fallback_workspace_match_is_visible(): void
+    {
+        $this->registry->register(new NavigationItem(
+            'admin', 'mod', 'Admin', '/admin',
+            workspace: 'workspace.owner',
+            fallbackWorkspace: 'workspace.default',
+        ));
+
+        $this->assertCount(1, $this->registry->items('workspace.default'));
+    }
+
+    public function test_tenant_workspace_excludes_owner_primary_and_default_fallback(): void
+    {
+        $this->registry->register(new NavigationItem(
+            'admin', 'mod', 'Admin', '/admin',
+            workspace: 'workspace.owner',
+            fallbackWorkspace: 'workspace.default',
+        ));
+
+        $this->assertCount(0, $this->registry->items('workspace.tenant'));
+    }
+
+    public function test_global_item_remains_visible_in_every_workspace(): void
+    {
+        $this->registry->register(new NavigationItem('global', 'mod', 'Global', '/global'));
+
+        $this->assertCount(1, $this->registry->items('workspace.owner'));
+        $this->assertCount(1, $this->registry->items('workspace.tenant'));
+        $this->assertCount(1, $this->registry->items('workspace.default'));
+    }
+
+    public function test_existing_constructor_and_unfiltered_behavior_are_preserved(): void
+    {
+        $item = new NavigationItem('legacy', 'mod', 'Legacy', '/legacy', null, null, 'workspace.owner', 'Main', 10, 'legacy*');
+
+        $this->registry->register($item);
+
+        $this->assertSame('workspace.owner', $item->workspace);
+        $this->assertNull($item->fallbackWorkspace);
+        $this->assertSame(['legacy'], array_map(
+            static fn (NavigationItem $navigationItem) => $navigationItem->id,
+            $this->registry->items(),
+        ));
+    }
+
     public function test_grouped_returns_items_by_group(): void
     {
         $this->registry->register(new NavigationItem('a', 'mod', 'A', '/a', group: 'Main'));

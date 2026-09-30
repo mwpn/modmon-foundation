@@ -33,7 +33,11 @@ class NavigationRegistry implements NavigationRegistryContract
     public function items(?string $workspace = null): array
     {
         $items = $workspace !== null
-            ? array_filter($this->items, fn (NavigationItem $i) => $i->workspace === $workspace || $i->workspace === null)
+            ? array_filter($this->items, fn (NavigationItem $i) =>
+                $i->workspace === null
+                || $i->workspace === $workspace
+                || $i->fallbackWorkspace === $workspace
+            )
             : $this->items;
 
         $sorted = array_values($items);

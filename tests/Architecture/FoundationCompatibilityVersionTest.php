@@ -9,16 +9,24 @@ use App\Foundation\SDK\ModuleManifest;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Foundation Contract SemVer for ActiveWorkspace (1.1.0).
+ * Foundation Contract SemVer for Navigation fallback (1.2.0).
  */
 class FoundationCompatibilityVersionTest extends TestCase
 {
-    public function test_foundation_contract_version_is_1_1_0(): void
+    public function test_foundation_contract_version_is_1_2_0(): void
     {
-        $this->assertSame('1.1.0', CompatibilityChecker::FOUNDATION_VERSION);
+        $this->assertSame('1.2.0', CompatibilityChecker::FOUNDATION_VERSION);
     }
 
-    public function test_caret_1_1_passes_on_current_foundation(): void
+    public function test_caret_1_2_passes_on_current_foundation(): void
+    {
+        $checker = new CompatibilityChecker;
+        $errors = $checker->check($this->manifestWithFoundation('^1.2'));
+
+        $this->assertSame([], $errors);
+    }
+
+    public function test_caret_1_1_remains_compatible_with_1_2_0(): void
     {
         $checker = new CompatibilityChecker;
         $errors = $checker->check($this->manifestWithFoundation('^1.1'));
@@ -26,22 +34,14 @@ class FoundationCompatibilityVersionTest extends TestCase
         $this->assertSame([], $errors);
     }
 
-    public function test_caret_1_0_remains_compatible_with_1_1_0(): void
+    public function test_caret_1_3_is_incompatible_with_1_2_0(): void
     {
         $checker = new CompatibilityChecker;
-        $errors = $checker->check($this->manifestWithFoundation('^1.0'));
-
-        $this->assertSame([], $errors);
-    }
-
-    public function test_incompatible_foundation_requirement_fails(): void
-    {
-        $checker = new CompatibilityChecker;
-        $errors = $checker->check($this->manifestWithFoundation('^1.2'));
+        $errors = $checker->check($this->manifestWithFoundation('^1.3'));
 
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Requires Foundation Contract ^1.2', $errors[0]);
-        $this->assertStringContainsString('current is 1.1.0', $errors[0]);
+        $this->assertStringContainsString('Requires Foundation Contract ^1.3', $errors[0]);
+        $this->assertStringContainsString('current is 1.2.0', $errors[0]);
     }
 
     public function test_major_constraint_incompatible_fails(): void
