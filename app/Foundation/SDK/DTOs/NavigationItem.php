@@ -20,5 +20,6 @@ final readonly class NavigationItem
         public ?string $group = null,
         public int     $order = 100,
         public ?string $activePattern = null,
+        public ?string $fallbackWorkspace = null,
     ) {}
 }
