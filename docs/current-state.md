@@ -5,6 +5,18 @@
 Foundation v1 implementation complete, audited. Requires `composer install`
 and `npm install` on target Laragon environment before first run.
 
+### Host `main` (2026-10-09)
+
+-   **`c5b09f0`** — adds in-tree **Workspace v1.0.0** under
+    `Modules/Workspace/` (see [Workspace Module](#workspace-module-modulesworkspace)
+    below).
+-   **`c580038`** — merge commit **Merge origin/main navigation workspace
+    fallback** (`ef9d0ba`; Foundation Contract **1.2.0** — Experience
+    nav filtering, documented under Foundation above).
+
+Post-merge **targeted** test results (separate from the full-suite
+baseline): [Test Summary](#test-summary).
+
 ### Audit Fixes Applied
 
 1.  **Migration execution** — `ModuleManager::install()` runs module
@@ -85,7 +97,9 @@ and `npm install` on target Laragon environment before first run.
     `ContributesPermissions`, `ContributesRoutes`
 
 **Experience Kernel** (app/Foundation/Experience/)
--   `NavigationRegistry` — in-memory, supports workspace filtering and
+-   `NavigationRegistry` — in-memory, supports workspace filtering
+    (primary `NavigationItem::workspace`, global `workspace === null`,
+    and `NavigationItem::fallbackWorkspace` since Contract 1.2.0) and
     grouping (returns all contributed items; disable uses
     `removeByModule`)
 -   `AppShell` honors `NavigationItem::permission` at render time via
@@ -100,9 +114,13 @@ and `npm install` on target Laragon environment before first run.
     `foundation::dashboard` and `AppShell` (when `$workspace` is null)
     follow `current()`. Regression:
     `tests/Feature/Foundation/ActiveWorkspaceTest.php`.
-    Foundation Contract version is **`1.1.0`**
-    (`CompatibilityChecker::FOUNDATION_VERSION`) so modules can require
-    `compatibility.foundation: ^1.1` when they depend on this API.
+    Foundation Contract version is **`1.2.0`**
+    (`CompatibilityChecker::FOUNDATION_VERSION`) after merge `c580038`
+    (navigation workspace fallback). **`1.1.0`** introduced
+    `ActiveWorkspaceContract`; **`1.2.0`** adds
+    `NavigationItem::fallbackWorkspace`. Modules may require
+    `compatibility.foundation: ^1.1` (still compatible) or `^1.2` when
+    they depend on navigation fallback.
 -   `WorkspaceRegistry` — in-memory, supports slots and workspace
     extraction
 -   `PermissionRegistry` — in-memory, grouped-by-module
@@ -148,11 +166,30 @@ and `npm install` on target Laragon environment before first run.
 -   Migration: `example_entries` table
 -   Views: index, about, widget partials
 
+### Workspace Module (Modules/Workspace/)
+
+In-tree platform module **v1.0.0** (`c5b09f0`). See `Modules/Workspace/README.md`
+and `module.json`.
+
+-   `WorkspaceServiceProvider` — binds `ActiveWorkspaceContract` to
+    `ContextActiveWorkspace` (owner vs tenant from domain request
+    attribute and/or Tenancy context; does not mutate `TenantContext`
+    or require TenantDomains).
+-   Navigation: owner/tenant workspace home items (`workspace.owner`,
+    `workspace.tenant`); dashboard marker widgets per workspace slot.
+-   Capabilities: provides `workspace.owner`, `workspace.tenant`;
+    requires `tenancy.context` (Identity + Tenancy must be installed
+    on the host for doctor/install).
+-   No module-owned migrations.
+
 ### External modules
 
-Foundation ships only the **Example** reference module under
-`Modules/Example/`. Platform and business modules live in separate
-repositories and install via copy-from-Git (no host source edits).
+Foundation ships **Example** (reference) and **Workspace** (platform
+composition) under `Modules/`. Other platform and business modules live
+in separate repositories and install via copy-from-Git (no host source
+edits). Local copies of external modules under `Modules/` that are not
+committed in this repository are **not** part of the official Foundation
+tree.
 
 | Module    | Repository              | Status                                      |
 | --------- | ----------------------- | ------------------------------------------- |
@@ -504,11 +541,40 @@ npm run build
 
 ## Test Summary
 
-109 tests at Foundation v1 with `module:make` (post-audit), now 125
-tests / 326 assertions including the Migrator install regression
+109 tests at Foundation v1 with `module:make` (post-audit). Documented
+**full Foundation host suite baseline: 125 tests / 326 assertions**
+(including the Migrator install regression
 (`tests/Feature/Foundation/ModuleInstallAfterConsoleKernelResolvedTest.php`)
 and Experience navigation permission filtering
-(`tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`).
+(`tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`)).
+That baseline predates merge `c580038` and Workspace `c5b09f0` and has
+**not** been re-run as a full suite after those commits; treat 125 / 326
+as historical documentation until a new full run is recorded.
+
+### Targeted validation — Workspace + navigation fallback (2026-10-09)
+
+**Separate from the 125 / 326 baseline** — not a full-suite re-run, not
+added to that total, and not a replacement count. After `composer install`,
+a **targeted** run validated merge `c580038` (Workspace `c5b09f0` +
+fallback `ef9d0ba`):
+
+| Result | Detail |
+| ------ | ------ |
+| **43 passed** | **132 assertions** |
+
+Files exercised:
+
+-   `tests/Architecture/NavigationRegistryTest.php`
+-   `tests/Architecture/FoundationCompatibilityVersionTest.php`
+-   `tests/Feature/Foundation/ActiveWorkspaceTest.php`
+-   `tests/Feature/Foundation/NavigationPermissionVisibilityTest.php`
+-   `Modules/Workspace/Tests/Feature/WorkspaceSelectionTest.php`
+-   `Modules/Workspace/Tests/Feature/WorkspaceContributionTest.php`
+-   `Modules/Workspace/Tests/Feature/WorkspaceLifecycleTest.php`
+-   `Modules/Workspace/Tests/Feature/WorkspaceInstallTest.php`
+-   `Modules/Workspace/Tests/Unit/WorkspaceManifestTest.php`
+-   `Modules/Workspace/Tests/Unit/WorkspaceFoundationConstraintTest.php`
+
 Identity and RBAC module tests run in `modmon-identity` /
 `modmon-rbac` (or a host with those modules copied in) — not in the
 Foundation suite.
@@ -591,8 +657,9 @@ never written by the module (ADR-0006 amendment 2026-08-12).
     authorizes it.
 2.  Subscription platform module (compose with Tenancy; do not merge
     billing into Tenancy).
-3.  Owner/Tenant workspace modules (compose with `tenancy.context`; do
-    not merge workspace UI into Tenancy).
+3.  Workspace v1.0.0 is in-tree (`Modules/Workspace/`); optional extract
+    to `mwpn/modmon-workspace`, portability certification, and host
+    docs follow-up.
 4.  Re-evaluate `module:verify` (deferred in authoring-tooling-v1).
 5.  Optional follow-up (out of TenantLanding certification): align
     TenantDomains HTTP middleware registration with Http Kernel
