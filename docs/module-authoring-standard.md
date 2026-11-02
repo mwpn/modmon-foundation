@@ -157,17 +157,31 @@ Always declare all three constraints:
 
 `CompatibilityChecker` evaluates these during `module:doctor`, `module:install`, and `module:enable`. Omitting a constraint skips that check and risks silent incompatibility.
 
-Foundation version constant: `CompatibilityChecker::FOUNDATION_VERSION` (`1.2.0`).
+Foundation version constant: `CompatibilityChecker::FOUNDATION_VERSION` (`1.5.0`).
 
 Contract `1.1.0` introduced the Experience `ActiveWorkspaceContract` API
 (default `workspace.default`). Modules that need that API should declare
 `compatibility.foundation: ^1.1`. Modules declaring `^1.0` remain
-SemVer-compatible with `1.2.0`.
+SemVer-compatible with `1.5.0`.
 
 Contract `1.2.0` adds `NavigationItem::fallbackWorkspace`. Navigation
 contributions match their primary `workspace`, then their optional fallback
 workspace. `workspace: null` remains genuinely global. Modules using the
 fallback field should declare `compatibility.foundation: ^1.2`.
+
+Contract `1.3.0` (ADR-0011) adds the Experience components
+`x-foundation::icon`, `x-foundation::modal`, `x-foundation::confirm-delete`
+and icon names for `NavigationItem::icon`. Modules using any of them declare
+`compatibility.foundation: ^1.3`.
+
+Contract `1.4.0` (ADR-0012) adds the Experience brand hook
+(`ExperienceBrandContract`, `ExperienceBrand::overlay()` levels). A module
+that brands the shells decorates the binding with `extend()` and declares
+`^1.4` (or guards with `interface_exists` when branding is optional).
+
+Contract `1.5.0` (ADR-0013) adds the `shell.floating` dashboard-widget slot,
+rendered at the end of `<body>` on every authenticated page. A module
+contributing a floating widget declares `^1.5`.
 
 ---
 
@@ -339,6 +353,34 @@ Implement `ContributesRoutes::routeFiles()` returning the path(s).
 - Reference as `{code}::path.to.view`
 - Widget views: `Resources/views/widgets/`
 - Use Foundation design-system Blade components where applicable
+
+### Icons, modals, deletes (Contract 1.3.0)
+
+-   **Icons:** `<x-foundation::icon name="trash-2" class="h-4 w-4" />` —
+    Lucide names (lucide.dev, set copied into Foundation). No inline
+    `<svg>` copies or module-private icon sets.
+-   **Deletes:** `<x-foundation::confirm-delete :action="route('x.destroy', $id)"
+    title="Delete this?" message="What happens to related data." />`.
+    Never `onsubmit="return confirm(…)"`.
+-   **Modal or page?** A modal for a **short** form: about five fields or
+    fewer, one column, no multi-file upload, and not the page's main
+    repeated task. Everything else stays a full page.
+-   **Modal forms:**
+
+    ```blade
+    <x-foundation::button size="sm" x-data x-on:click="$dispatch('open-modal', 'widget-new')">…</x-foundation::button>
+
+    <x-foundation::modal id="widget-new" title="New widget" :action="route('…store')">
+        <input name="name" value="{{ \App\Foundation\Experience\Modal::old('widget-new', 'name') }}">
+    </x-foundation::modal>
+    ```
+
+    One modal id per form (`widget-{id}` for edit rows). Validation stays
+    server-side; the controller redirects back as usual and the failed
+    modal reopens with its error. Read values with
+    `Modal::old($id, $field, $default)`, not `old()`, so edit modals do
+    not share input; checkboxes use `Modal::checked($id, $field,
+    $default)`.
 
 ---
 

@@ -1,0 +1,23 @@
+{
+    "schema": 1,
+    "name": "TenancyBranding",
+    "code": "tenancy-branding",
+    "version": "1.0.0",
+    "type": "integration",
+    "provider": "Modules\\TenancyBranding\\TenancyBrandingServiceProvider",
+    "compatibility": {
+        "php": "^8.3",
+        "laravel": "^13.0",
+        "foundation": "^1.0"
+    },
+    "requires": {
+        "capabilities": [
+            "branding.application",
+            "tenancy.tenant",
+            "tenancy.context"
+        ]
+    },
+    "provides": [
+        "branding.tenant"
+    ]
+}

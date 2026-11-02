@@ -1,14 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "modmon/foundation",
+    "name": "modmon/tailadmin",
     "type": "project",
-    "description": "ModMon - Laravel 13 modular-monolith application composition foundation.",
-    "keywords": ["laravel", "modular", "monolith", "foundation", "modules"],
-    "license": "proprietary",
+    "description": "ModMon v2 — TailAdmin UI + Laravel 13 modular-monolith foundation.",
+    "keywords": [
+        "laravel",
+        "modular",
+        "monolith",
+        "foundation",
+        "modules",
+        "tailadmin"
+    ],
+    "license": "MIT",
     "require": {
         "php": "^8.3",
-        "laravel/framework": "^13.17",
         "composer/semver": "^3.4",
+        "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
@@ -80,7 +87,6 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true,
             "php-http/discovery": true
         }
     },

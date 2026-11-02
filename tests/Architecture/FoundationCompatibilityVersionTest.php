@@ -9,16 +9,33 @@ use App\Foundation\SDK\ModuleManifest;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Foundation Contract SemVer for Navigation fallback (1.2.0).
+ * Foundation Contract SemVer (1.5.0: Experience floating slot, ADR-0013; 1.4.0: Experience brand hook, ADR-0012; 1.3.0: Experience icon/modal components,
+ * ADR-0011; 1.2.0: navigation workspace fallback).
  */
 class FoundationCompatibilityVersionTest extends TestCase
 {
-    public function test_foundation_contract_version_is_1_2_0(): void
+    public function test_foundation_contract_version_is_1_5_0(): void
     {
-        $this->assertSame('1.2.0', CompatibilityChecker::FOUNDATION_VERSION);
+        $this->assertSame('1.5.0', CompatibilityChecker::FOUNDATION_VERSION);
     }
 
-    public function test_caret_1_2_passes_on_current_foundation(): void
+    public function test_caret_1_4_passes_on_current_foundation(): void
+    {
+        $checker = new CompatibilityChecker;
+        $errors = $checker->check($this->manifestWithFoundation('^1.4'));
+
+        $this->assertSame([], $errors);
+    }
+
+    public function test_caret_1_3_remains_compatible_with_1_4_0(): void
+    {
+        $checker = new CompatibilityChecker;
+        $errors = $checker->check($this->manifestWithFoundation('^1.3'));
+
+        $this->assertSame([], $errors);
+    }
+
+    public function test_caret_1_2_remains_compatible_with_1_4_0(): void
     {
         $checker = new CompatibilityChecker;
         $errors = $checker->check($this->manifestWithFoundation('^1.2'));
@@ -26,7 +43,7 @@ class FoundationCompatibilityVersionTest extends TestCase
         $this->assertSame([], $errors);
     }
 
-    public function test_caret_1_1_remains_compatible_with_1_2_0(): void
+    public function test_caret_1_1_remains_compatible_with_1_4_0(): void
     {
         $checker = new CompatibilityChecker;
         $errors = $checker->check($this->manifestWithFoundation('^1.1'));
@@ -34,14 +51,14 @@ class FoundationCompatibilityVersionTest extends TestCase
         $this->assertSame([], $errors);
     }
 
-    public function test_caret_1_3_is_incompatible_with_1_2_0(): void
+    public function test_caret_1_6_is_incompatible_with_1_5_0(): void
     {
         $checker = new CompatibilityChecker;
-        $errors = $checker->check($this->manifestWithFoundation('^1.3'));
+        $errors = $checker->check($this->manifestWithFoundation('^1.6'));
 
         $this->assertNotEmpty($errors);
-        $this->assertStringContainsString('Requires Foundation Contract ^1.3', $errors[0]);
-        $this->assertStringContainsString('current is 1.2.0', $errors[0]);
+        $this->assertStringContainsString('Requires Foundation Contract ^1.6', $errors[0]);
+        $this->assertStringContainsString('current is 1.5.0', $errors[0]);
     }
 
     public function test_major_constraint_incompatible_fails(): void

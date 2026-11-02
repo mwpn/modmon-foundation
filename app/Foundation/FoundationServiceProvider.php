@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Foundation;
 
+use App\Foundation\Experience\DefaultExperienceBrand;
 use App\Foundation\Experience\Navigation\NavigationRegistry;
 use App\Foundation\Experience\PermissionRegistry;
 use App\Foundation\Experience\Workspace\DefaultActiveWorkspace;
@@ -24,6 +25,7 @@ use App\Foundation\Runtime\ModuleManager;
 use App\Foundation\Runtime\ModuleRegistrar;
 use App\Foundation\SDK\Contracts\ActiveWorkspaceContract;
 use App\Foundation\SDK\Contracts\CapabilityRegistryContract;
+use App\Foundation\SDK\Contracts\ExperienceBrandContract;
 use App\Foundation\SDK\Contracts\ModuleRegistrarContract;
 use App\Foundation\SDK\Contracts\NavigationRegistryContract;
 use App\Foundation\SDK\Contracts\PermissionRegistryContract;
@@ -52,6 +54,8 @@ class FoundationServiceProvider extends ServiceProvider
         $this->app->singleton(WorkspaceRegistryContract::class, WorkspaceRegistry::class);
         $this->app->singleton(PermissionRegistryContract::class, PermissionRegistry::class);
         $this->app->singleton(ActiveWorkspaceContract::class, DefaultActiveWorkspace::class);
+        // Request-scoped brand; modules decorate it with extend() (ADR-0012).
+        $this->app->scoped(ExperienceBrandContract::class, DefaultExperienceBrand::class);
 
         // --- Runtime components ---
 

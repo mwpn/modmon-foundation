@@ -13,6 +13,164 @@ and `npm install` on target Laragon environment before first run.
 -   **`c580038`** — merge commit **Merge origin/main navigation workspace
     fallback** (`ef9d0ba`; Foundation Contract **1.2.0** — Experience
     nav filtering, documented under Foundation above).
+-   **2026-11-02 — TailAdmin starter demo moved to `.source/` (reference
+    only), matching the `modmon` host's pattern:** now that the
+    Experience Kernel (brand hook, icon/modal components, floating
+    slot) is wired and verified, the raw, un-composed TailAdmin starter
+    (`/`, `/calendar`, `/profile`, `/signin`, … and everything that
+    backed them) no longer needs to be a live part of the app.
+    -   Moved, not deleted, to `.source/tailadmin-wired/` (gitignored,
+        `/.source` added to `.gitignore`): `app/View/Components/`,
+        `app/Helpers/MenuHelper.php`, `resources/views/{pages,layouts,components}/`,
+        `resources/js/components/` (ApexCharts/FullCalendar/jsvectormap
+        chart & map initializers), `public/images/`. Kept apart from
+        `modmon`'s own `.source/tailadmin-laravel-main/` (the pristine
+        upstream download) since this copy already carries this host's
+        Foundation wiring — useful as a worked example if a future
+        `experience-tailadmin` module (see `docs/ui-composition.md`,
+        "Experience implementation: Spark vs TailAdmin") is ever built
+        from it.
+    -   `routes/web.php` reduced to `/` (redirects to `/dashboard`) and
+        `/dashboard` (Foundation, `auth`-protected). All demo routes
+        removed.
+    -   `resources/js/app.js`: removed the ApexCharts/flatpickr/FullCalendar
+        imports and the `DOMContentLoaded` demo-chart/map/calendar
+        initializers — none of it was reachable from Foundation's own
+        views. Alpine store registrations (`theme`, `sidebar`) and the
+        date/time-picker click helper stay (Foundation depends on them).
+    -   `package.json`: dropped `apexcharts`, `flatpickr`, `@fullcalendar/*`,
+        `@popperjs/core`, `@floating-ui/dom`, `jsvectormap`, `prismjs`,
+        `swiper` — unused once the demo moved out; `npm install` after
+        pulling this change. Bundle size dropped from ~940 KB to ~106 KB
+        JS (and CSS ~142 KB → ~108 KB) as a result.
+    -   `resources/css/app.css`: dropped the `prismjs/themes/prism.min.css`
+        import (demo-only). The `@theme`/`@utility` tokens (incl.
+        `menu-item-*`, `no-scrollbar`) were **not** pruned — Foundation's
+        own `AppShell`/`nav-item` views use them.
+    -   Updated for the new `/` behaviour (redirect, not a 200 demo
+        page): `tests/Feature/ExampleTest.php`,
+        `tests/Feature/Foundation/ExperienceDashboardTest.php`
+        (`test_guest_home_remains_public` → `test_guest_home_redirects_to_the_dashboard`).
+    -   **Guest fallback added** (same session): with no module
+        installed, `/` → `/dashboard` → `/` used to **infinite-redirect**
+        — `bootstrap/app.php`'s `redirectGuestsTo()` fell back to
+        `Route::has('signin')` (a TailAdmin demo route, now gone) and
+        then plain `'/'`, which bounced straight back into the
+        `auth`-protected `/dashboard`. Fixed the way `dkm-v2` does it:
+        -   `routes/web.php`: `Route::view('/welcome', 'welcome')->middleware('guest')->name('welcome')`.
+        -   `resources/views/welcome.blade.php`: a generic
+            `<x-foundation::guest-shell>` notice — "no sign-in yet,
+            run `php artisan module:install identity`" — no business
+            copy, portable as-is.
+        -   `bootstrap/app.php`: `redirectGuestsTo()` now falls back to
+            `route('welcome')` once `Route::has('login')` is false
+            (dropped the stale `signin` check).
+        -   Chain is now `/` → `/dashboard` → `/welcome` (200), verified
+            in-browser with zero console errors. Covered by
+            `ExperienceDashboardTest::test_guest_home_without_identity_shows_setup_notice`.
+-   **2026-11-02** — backported three Experience Kernel ADRs from the
+    `dkm-v2` host application (which had advanced ahead of this
+    template) to bring the Foundation Contract from **1.2.0** to
+    **1.5.0**:
+    -   ADR-0011 (**1.3.0**) — shared `x-foundation::icon`,
+        `x-foundation::modal`, `x-foundation::confirm-delete`
+        components; Lucide icon set vendored into
+        `app/Foundation/Experience/icons/`.
+    -   ADR-0012 (**1.4.0**) — `ExperienceBrandContract` /
+        `ExperienceBrand` brand hook (request-scoped, decorated in
+        levels); guest/app shells render the resolved brand instead of
+        a bare `config('app.name')`. `ExperienceBrand::initial()` kept
+        generic (no business-specific name stripping) — Foundation
+        must not encode business vocabulary.
+    -   ADR-0013 (**1.5.0**) — `DashboardWidget::SHELL_FLOATING`
+        (`shell.floating`) slot, rendered at the end of `<body>` on
+        every authenticated page.
+    -   Outfit font self-hosted (`resources/fonts/*.woff2` +
+        `@font-face` in `resources/css/app.css`), dropping the Google
+        Fonts CDN `@import`. Other font families used only by `dkm-v2`
+        business modules (Plus Jakarta Sans, Newsreader) were **not**
+        backported — not referenced by this template's own
+        `@theme`.
+    -   Not backported: anything specific to `dkm-v2`'s business
+        modules (e.g. its `Masjid`-level brand provider, its donation
+        floating widget) — those stay in `dkm-v2`; only the generic
+        Foundation Contract surface moved here.
+    -   `nav-item.blade.php` updated to resolve `NavigationItem::icon`
+        through `Icons::has()`/`<x-foundation::icon>` when it names an
+        icon from the set, falling back to raw SVG markup otherwise
+        (this piece was missing even though the SDK DTO already
+        documented it as supported since 1.3.0).
+    -   Regression tests ported from `dkm-v2` and kept Foundation-generic
+        (business-flavoured fixture names replaced with neutral ones;
+        `ExperienceBrand::initial()` assertions updated for the generic,
+        non-prefix-stripping implementation; the locale-dependent
+        `test_shell_texts_are_translated` case dropped — it needs a
+        `lang/id.json` this template intentionally does not ship):
+        `tests/Feature/Foundation/ExperienceBrandTest.php`,
+        `ExperienceIconModalTest.php`, `FloatingSlotTest.php`. Also
+        updated `tests/Architecture/FoundationCompatibilityVersionTest.php`
+        for 1.5.0 (copied from `dkm-v2` as-is, no business content).
+-   **2026-11-02 — stray scaffolding removed (pre-existing bug, found
+    while verifying the above in-browser):** `x-foundation::app-shell`
+    was silently hijacked by leftover early-scaffolding code that
+    predates the proper `app/Foundation/Experience/Components/AppShell`
+    pattern and is **not** present in `dkm-v2`:
+    -   `App\Providers\ExperienceServiceProvider` (registered in
+        `bootstrap/providers.php` **after** `FoundationServiceProvider`,
+        so it won) called
+        `Blade::component(TailadminAppShell::class, 'foundation::app-shell')`,
+        overriding the Foundation Kernel's own
+        `Blade::componentNamespace()` registration. Effectively **every**
+        use of `x-foundation::app-shell` rendered the raw, un-composed
+        TailAdmin demo layout (`resources/views/layouts/app.blade.php`)
+        instead of the brand-aware, module-composed
+        `foundation::layouts.app` — meaning the Contract 1.3–1.5
+        components above were on disk but **inert** until this was
+        removed. Deleted: `ExperienceServiceProvider.php`,
+        `App\View\Components\Experience\TailadminAppShell`, its target
+        view `resources/views/experience/tailadmin-app-shell.blade.php`,
+        and the `bootstrap/providers.php` entry.
+    -   Also removed as confirmed-dead code (no route or view
+        referenced them): `app/Http/Controllers/DashboardController.php`
+        (pointed at a non-existent `pages.dashboard` view) and
+        `SidebarController.php` (its `getMenuData()` duplicated
+        `MenuHelper`, unused by any route).
+    -   `app/Helpers/MenuHelper.php` was **initially deleted in the same
+        pass, then restored** — it is genuinely used by the stock
+        TailAdmin demo's `resources/views/layouts/sidebar.blade.php`
+        (the stock `/`, `/calendar`, `/profile`, … routes, unrelated to
+        Foundation). Restored from the closest available copy (the
+        unmodified template in `modmon`'s `.source/tailadmin-laravel-main/`,
+        19241 vs the original 19311 bytes — likely missing a handful of
+        menu-item customizations; cosmetic only, confined to the stock
+        demo pages, not the Foundation shell).
+    -   Separately, `foundation::layouts.app` / `foundation::layouts.guest`
+        depend on `$store.sidebar` and `$store.theme` (Alpine stores),
+        which were **only ever defined inline** in the stock TailAdmin
+        partials (`resources/views/layouts/partials/tailadmin-document-start.blade.php`
+        and similar) — never in `resources/js/app.js`. Once the
+        hijacking above was fixed, the Foundation shells rendered with
+        every `$store.sidebar.*` binding throwing (sidebar collapsed to
+        zero width). Backported the same two `Alpine.store()`
+        registrations (`theme`, `sidebar`) from `dkm-v2`'s
+        `resources/js/app.js` into this host's `app.js`, ahead of
+        `Alpine.start()`. The stock demo partials still define their own
+        copies too (harmless, last-registration-wins, left alone — out
+        of scope to touch the stock demo code further here).
+    -   Verified in-browser (`php artisan test` suite does not exercise
+        real page loads): brand hook, sidebar, dark-mode toggle and the
+        mobile/desktop breakpoints all render with zero console errors
+        after the fix, confirmed via a temporary
+        `Blade::render('<x-foundation::app-shell>…')` smoke route
+        (removed after verification — not part of the shipped routes).
+    -   **Residual, out of scope for this pass:** the unmodified stock
+        TailAdmin demo (`resources/views/layouts/*`, `resources/views/pages/*`,
+        `app/View/Components/*` demo widgets, `/`, `/calendar`, etc.)
+        is still live in this host, unlike `dkm-v2` (which removed it
+        entirely) and unlike `modmon` (which keeps it reference-only
+        under gitignored `.source/`). Deciding whether to delete it,
+        keep it live, or move it to `.source/` the way `modmon` does is
+        a separate decision, not implied by this backport.
 
 Post-merge **targeted** test results (separate from the full-suite
 baseline): [Test Summary](#test-summary).
@@ -114,17 +272,29 @@ baseline): [Test Summary](#test-summary).
     `foundation::dashboard` and `AppShell` (when `$workspace` is null)
     follow `current()`. Regression:
     `tests/Feature/Foundation/ActiveWorkspaceTest.php`.
-    Foundation Contract version is **`1.2.0`**
-    (`CompatibilityChecker::FOUNDATION_VERSION`) after merge `c580038`
-    (navigation workspace fallback). **`1.1.0`** introduced
+    Foundation Contract version is **`1.5.0`**
+    (`CompatibilityChecker::FOUNDATION_VERSION`). **`1.1.0`** introduced
     `ActiveWorkspaceContract`; **`1.2.0`** adds
-    `NavigationItem::fallbackWorkspace`. Modules may require
-    `compatibility.foundation: ^1.1` (still compatible) or `^1.2` when
-    they depend on navigation fallback.
--   `WorkspaceRegistry` — in-memory, supports slots and workspace
-    extraction
+    `NavigationItem::fallbackWorkspace`; **`1.3.0`** (ADR-0011) adds the
+    icon/modal/confirm-delete components; **`1.4.0`** (ADR-0012) adds
+    the Experience brand hook; **`1.5.0`** (ADR-0013) adds the
+    `shell.floating` widget slot. Modules declare the lowest
+    `compatibility.foundation` constraint their usage requires.
+-   `WorkspaceRegistry` — in-memory, supports slots, workspace
+    extraction, and `widgetsForSlot()` (used for `shell.floating`,
+    Contract 1.5.0)
 -   `PermissionRegistry` — in-memory, grouped-by-module
+-   `ExperienceBrandContract` + `DefaultExperienceBrand` (Contract
+    1.4.0, ADR-0012) — request-scoped brand (`scoped` binding);
+    Kernel default returns `config('app.name')` only. Modules decorate
+    with `$app->extend()` and `ExperienceBrand::overlay()`
+    (`LEVEL_APPLICATION` / `LEVEL_TENANT` / `LEVEL_TENANT_OVERRIDE`).
+-   `Icons` (Lucide set, `app/Foundation/Experience/icons/`) and
+    `Modal` (old-input/reopen helpers for `_modal` forms) — Contract
+    1.3.0, ADR-0011.
 -   Blade components: `AppShell`, `GuestShell`, `DashboardSlot`, `NavItem`
+-   Anonymous components: `icon`, `modal`, `confirm-delete` (Contract
+    1.3.0)
 -   Design-system views: card, stat-card, page-header, alert, badge,
     button, empty-state, avatar
 -   TailAdmin-inspired AppShell (Phase 1+2 **final**): local
@@ -134,11 +304,17 @@ baseline): [Test Summary](#test-summary).
     header (hamburger | brand | ⋮ → theme/user row), desktop topbar with
     avatar/dropdown logout only, dark/light persist, runtime auth chrome
     (no Identity hard dependency). Menu-item utilities adapted from
-    TailAdmin CSS patterns.
+    TailAdmin CSS patterns. Since Contract 1.4.0 the sidebar/mobile
+    header render the resolved `ExperienceBrand` (name, logo, favicon,
+    `--color-brand-*`) instead of a bare `config('app.name')` initial
+    tile; since Contract 1.5.0 the shell renders `shell.floating`
+    widgets at the end of `<body>`.
 -   GuestShell: TailAdmin signin composition (form column + brand-950
-    panel + floating theme toggle). Host provides `GET /dashboard`
-    (`name: dashboard`, `auth`). Identity login targets `dashboard`
-    when present without Foundation importing Identity.
+    panel + floating theme toggle), also brand-aware since Contract
+    1.4.0 (logo/headline/tagline on both the phone and desktop brand
+    panel). Host provides `GET /dashboard` (`name: dashboard`, `auth`).
+    Identity login targets `dashboard` when present without Foundation
+    importing Identity.
 -   Dashboard host uses `max-w-(--breakpoint-2xl)`; DashboardSlot
     auto-fit grid expands sparse widgets (no fake metrics).
 -   Regression:

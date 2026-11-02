@@ -1,11 +1,13 @@
+@php($brand = app(\App\Foundation\SDK\Contracts\ExperienceBrandContract::class)->current())
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? config('app.name', 'ModMon') }}</title>
+    <title>{{ isset($title) ? $title.' — '.$brand->name : $brand->name }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('foundation::partials.brand-head')
     <script>
         (function () {
             var saved = localStorage.getItem('theme');
@@ -49,15 +51,25 @@
                 class="flex items-center pt-8 pb-7"
                 :class="(! $store.sidebar.isExpanded && ! $store.sidebar.isHovered && ! $store.sidebar.isMobileOpen) ? 'xl:justify-center' : 'justify-start'"
             >
-                <a href="{{ url('/') }}" class="flex items-center gap-3">
-                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
-                        {{ strtoupper(substr(config('app.name', 'M'), 0, 1)) }}
-                    </span>
-                    <span
-                        class="text-xl font-semibold text-gray-900 dark:text-white"
-                        x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen"
-                        x-cloak
-                    >{{ config('app.name', 'ModMon') }}</span>
+                <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-3" aria-label="{{ $brand->name }}">
+                    @php($expanded = '$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen')
+                    @if ($brand->showsLogo() && ! $brand->showsName())
+                        {{-- Logo only: the full logo while expanded, the square mark when collapsed. --}}
+                        <span x-show="{{ $expanded }}">@include('foundation::partials.brand-mark', ['size' => 'h-10 w-auto max-w-[200px] text-sm'])</span>
+                        <span x-show="! ({{ $expanded }})" x-cloak>@include('foundation::partials.brand-mark', ['size' => 'h-9 w-9 text-sm', 'icon' => true])</span>
+                    @elseif ($brand->showsLogo())
+                        @include('foundation::partials.brand-mark', ['size' => 'h-9 w-9 text-sm', 'icon' => true])
+                    @else
+                        {{-- Name only: the collapsed sidebar still needs a mark. --}}
+                        <span x-show="! ({{ $expanded }})" x-cloak>@include('foundation::partials.brand-mark', ['size' => 'h-8 w-8 text-sm'])</span>
+                    @endif
+                    @if ($brand->showsName())
+                        <span
+                            class="truncate text-lg font-semibold leading-tight text-gray-900 dark:text-white"
+                            x-show="{{ $expanded }}"
+                            x-cloak
+                        >{{ $brand->panelName() }}</span>
+                    @endif
                 </a>
             </div>
 
@@ -156,11 +168,13 @@
                         </button>
 
                         {{-- Brand mark on mobile (TailAdmin logo slot) --}}
-                        <a href="{{ url('/') }}" class="inline-flex items-center gap-2 xl:hidden">
-                            <span class="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
-                                {{ strtoupper(substr(config('app.name', 'M'), 0, 1)) }}
-                            </span>
-                            <span class="text-lg font-semibold text-gray-900 dark:text-white">{{ config('app.name', 'ModMon') }}</span>
+                        <a href="{{ url('/') }}" class="inline-flex min-w-0 items-center gap-2 xl:hidden" aria-label="{{ $brand->name }}">
+                            @if ($brand->showsLogo())
+                                @include('foundation::partials.brand-mark', $brand->showsName() ? ['size' => 'h-8 w-8 text-sm', 'icon' => true] : ['size' => 'h-9 w-auto max-w-[180px] text-sm'])
+                            @endif
+                            @if ($brand->showsName())
+                                <span class="truncate text-lg font-semibold text-gray-900 dark:text-white">{{ $brand->panelName() }}</span>
+                            @endif
                         </a>
 
                         <button
@@ -180,7 +194,7 @@
                             @isset($header)
                                 {{ $header }}
                             @else
-                                <p class="truncate text-theme-sm font-medium text-gray-800 dark:text-white/90">{{ config('app.name', 'ModMon') }}</p>
+                                <p class="truncate text-theme-sm font-medium text-gray-800 dark:text-white/90">{{ $brand->panelName() }}</p>
                             @endisset
                         </div>
                     </div>
@@ -267,7 +281,7 @@
                                                 <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                                 </svg>
-                                                Logout
+                                                {{ __('Logout') }}
                                             </button>
                                         </form>
                                     @endif
@@ -283,5 +297,10 @@
             </div>
         </div>
     </div>
+
+    {{-- Contract 1.5.0 (ADR-0013): module widgets floating over every page. --}}
+    @foreach (app(\App\Foundation\SDK\Contracts\WorkspaceRegistryContract::class)->widgetsForSlot(\App\Foundation\SDK\DTOs\DashboardWidget::SHELL_FLOATING) as $floating)
+        @include($floating->view, $floating->data)
+    @endforeach
 </body>
 </html>

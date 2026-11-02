@@ -49,11 +49,17 @@ class ExperienceDashboardTest extends TestCase
         ));
     }
 
-    public function test_guest_home_remains_public(): void
+    public function test_guest_home_without_identity_shows_setup_notice(): void
     {
-        $this->get('/')
+        // The TailAdmin starter demo (`pages.*`, `layouts.*`) was moved to
+        // `.source/` for reference only — `/` is no longer a live page.
+        $this->get('/')->assertRedirect('/dashboard');
+        $this->get('/dashboard')->assertRedirect(route('welcome'));
+
+        $this->get(route('welcome'))
             ->assertOk()
-            ->assertSee('ModMon', false);
+            ->assertSee('module:install identity', false)
+            ->assertDontSee('E-commerce', false);
     }
 
     public function test_guest_dashboard_is_auth_protected(): void

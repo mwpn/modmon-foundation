@@ -13,14 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Generic host fallbacks only. Auth modules may override via
-        // Authenticate::redirectUsing() when enabled (no hard dependency).
         $middleware->redirectGuestsTo(function () {
             if (Route::has('login')) {
                 return route('login');
             }
 
-            return '/';
+            return route('welcome');
         });
 
         $middleware->redirectUsersTo(fn () => route('dashboard'));

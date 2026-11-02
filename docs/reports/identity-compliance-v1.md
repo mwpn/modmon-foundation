@@ -7,7 +7,8 @@ repository after Phase 6 portability certification.
 see `docs/reports/identity-compliance-v1.md` in that repository.
 
 **Result:** FULL COMPLIANCE with Module Authoring Standard v1 Portable Module
-Definition of Done (certified 2026-08-13 on clean Foundation host).
+Definition of Done (certified 2026-08-13; **v1.0.1** stabilization
+2026-09-18 — console registration fix + GuestShell auth UX).
 
 Install:
 

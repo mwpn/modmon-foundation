@@ -12,7 +12,7 @@ use Composer\Semver\Semver;
  */
 class CompatibilityChecker
 {
-    public const FOUNDATION_VERSION = '1.2.0';
+    public const FOUNDATION_VERSION = '1.5.0';
 
     /**
      * Check compatibility of a module manifest.
